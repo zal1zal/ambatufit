@@ -1,0 +1,64 @@
+# AmbatuFit STB Microservice Docker Compose
+# Meets TST Tugas 2 constraints: bounded containers, resource limits, no AI on STB
+
+services:
+  core-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    mem_limit: 256m       # menjaga STB tidak hang
+    cpus: 0.50
+    environment:
+      - DATABASE_URL=sqlite:////data/ambatufit.db
+      - APP_ENV=production
+    volumes:
+      - ambatufit_data:/data
+    networks:
+      - ambatunet
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  gateway:
+    image: nginx:1.28-alpine
+    restart: unless-stopped
+    mem_limit: 64m        # batas memori gateway STB
+    cpus: 0.15
+    ports:
+      - "8080:80"         # Entry port gateway lokal STB
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - core-service
+    networks:
+      - ambatunet
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    mem_limit: 96m
+    cpus: 0.15
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    depends_on:
+      - gateway
+    networks:
+      - ambatunet
+    # Profile tunnel allows local testing without tunnel by omitting --profile tunnel
+    profiles:
+      - tunnel
+
+networks:
+  ambatunet:
+    driver: bridge
+
+volumes:
+  ambatufit_data:
+    name: ambatufit_core_data
+
