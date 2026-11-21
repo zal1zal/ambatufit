@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Expo and generated output
+.expo/
+.expo-export/
+dist/
+web-build/
+android/
+ios/
+coverage/
+*.tsbuildinfo
+
+# Local environment; keep the configuration template
+.env
+.env.*
+!.env.example
+
+# Signing credentials and private keys
+credentials.json
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Build artifacts; preserve the required submission artifact
+*.apk
+*.aab
+*.ipa
+!Aplikasi_Release.apk
+
+# Logs and local tools
+*.log
+.eslintcache
+.npm/
+.cache/
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini

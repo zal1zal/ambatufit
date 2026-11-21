@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "color": {
+    "primary": "#F2DF3A", "primaryStrong": "#D3BE28", "accent": "#187C8A",
+    "background": "#F4F5F1", "surface": "#FFFFFF", "text": "#151C1E",
+    "textMuted": "#465459", "border": "#CBD3D1", "success": "#137657",
+    "warning": "#925900", "danger": "#B42318", "dangerBackground": "#FFF0ED",
+    "surfaceDark": "#182023", "surfaceDarkRaised": "#253036", "textOnDark": "#F6F8F6",
+    "textOnPrimary": "#151C1E", "mutedOnDark": "#BBC7C7", "grid": "#E2E7E3",
+    "warningBackground": "#FFF4DF", "successBackground": "#E9F6EF", "accentBackground": "#E9F4F5"
+  },
+  "space": { "1": 4, "2": 8, "3": 12, "4": 16, "6": 24, "8": 32 },
+  "radius": { "sm": 6, "md": 10, "lg": 16, "pill": 999 },
+  "font": {
+    "family": { "display": "Barlow Condensed", "body": "IBM Plex Sans", "mono": "IBM Plex Mono" },
+    "size": { "micro": 11, "technical": 12, "small": 14, "body": 16, "button": 17, "card": 18, "page": 36, "display": 48, "metric": 38 }
+  },
+  "layout": { "contentMaxWidth": 560, "touchTargetMin": 44, "screenHorizontalPadding": 16, "baseline": "390x844" },
+  "brand": { "productName": "AmbatuFit", "defaultLocale": "id-ID" }
+}

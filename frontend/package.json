@@ -1,0 +1,59 @@
+{
+  "name": "ambatufit-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .js,.jsx",
+    "verify:tokens": "node scripts/verify-design-tokens.js",
+    "verify:contracts": "node scripts/verify-api-contract.js",
+    "build:android": "eas build --platform android --profile production",
+    "verify:release": "node scripts/verify-release.js",
+    "format": "prettier --write \"src/**/*.{js,jsx}\" \"__tests__/**/*.{js,jsx}\" \"scripts/*.js\" \"*.js\" \"*.json\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"__tests__/**/*.{js,jsx}\" \"scripts/*.js\" \"*.js\" \"*.json\""
+  },
+  "dependencies": {
+    "@expo-google-fonts/barlow-condensed": "^0.4.1",
+    "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
+    "@expo-google-fonts/ibm-plex-sans": "^0.4.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^7.3.10",
+    "@react-navigation/native": "^7.1.6",
+    "@react-navigation/native-stack": "^7.3.10",
+    "expo": "~58.0.26",
+    "expo-font": "~58.0.12",
+    "expo-secure-store": "~58.0.3",
+    "expo-splash-screen": "~58.0.14",
+    "expo-status-bar": "~58.0.5",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1",
+    "react-native-svg": "15.16.0",
+    "react-native-svg-transformer": "^1.5.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@testing-library/react-native": "^13.2.0",
+    "babel-preset-expo": "~58.0.0",
+    "eslint": "^9.25.0",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.15",
+    "prettier": "^3.6.2",
+    "react-test-renderer": "^19.3.0"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "testMatch": [
+      "**/__tests__/**/*.test.(js|jsx)"
+    ],
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ]
+  }
+}

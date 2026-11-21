@@ -1,0 +1,37 @@
+export const ROUTES = Object.freeze({
+  Login: 'Login',
+  Home: 'Home',
+  SymptomAssessment: 'SymptomAssessment',
+  AssessmentResult: 'AssessmentResult',
+  AssessmentHistory: 'AssessmentHistory',
+  Guidance: 'Guidance',
+  Progress: 'Progress',
+  Profile: 'Profile',
+  HealthProfileEdit: 'HealthProfileEdit',
+  Nutrition: 'Nutrition',
+  Gyms: 'Gyms',
+  Professionals: 'Professionals',
+  ProfessionalDetail: 'ProfessionalDetail',
+  Booking: 'Booking',
+  MyBookings: 'MyBookings',
+  ProfessionalSharedAssessment: 'ProfessionalSharedAssessment',
+});
+export const TAB_ROUTES = Object.freeze([
+  'Home',
+  'SymptomAssessment',
+  'Guidance',
+  'Progress',
+  'Profile',
+]);
+export const STACK_ROUTES = Object.freeze([
+  'AssessmentResult',
+  'AssessmentHistory',
+  'HealthProfileEdit',
+  'Nutrition',
+  'Gyms',
+  'Professionals',
+  'ProfessionalDetail',
+  'Booking',
+  'MyBookings',
+  'ProfessionalSharedAssessment',
+]);
