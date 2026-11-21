@@ -1,7 +1,7 @@
 import { isEvidence, isAssessmentResult } from '../src/contracts/schemas';
 test('requires real evidence metadata and refuses unapproved statuses', () => {
-  expect(isEvidence({ evidence_code: 'E1', value_type: 'bool' })).toBe(true);
-  expect(isEvidence({ value_type: 'bool' })).toBe(false);
+  expect(isEvidence({ evidence_code: 'E1', value_type: 'boolean' })).toBe(true);
+  expect(isEvidence({ value_type: 'boolean' })).toBe(false);
   expect(
     isAssessmentResult({
       id: 'a1',

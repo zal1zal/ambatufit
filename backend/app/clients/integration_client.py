@@ -17,8 +17,8 @@ class IntegrationClient:
         """
         if self.mode == "mock":
             return {
-                "ambatunoutrish": "available",
-                "ambatomove": "available",
+                "ambatunoutrish": "not_configured",
+                "ambatomove": "not_configured",
             }
         
         status = {
@@ -35,8 +35,9 @@ class IntegrationClient:
                 res = await client.get(f"{self.base_url}/status", headers=headers)
                 if res.status_code == 200:
                     data = res.json()
-                    status["ambatunoutrish"] = data.get("ambatunoutrish", "unavailable")
-                    status["ambatomove"] = data.get("ambatomove", "unavailable")
+                    for provider in status:
+                        value = data.get(provider)
+                        status[provider] = value if value in ('available', 'unavailable', 'not_configured') else 'unavailable'
                 else:
                     status["ambatunoutrish"] = "unavailable"
                     status["ambatomove"] = "unavailable"

@@ -13,6 +13,8 @@ def test_b19_openapi_contract_generation():
     assert "/api/v1/guidance" in schema["paths"]
     assert "/api/v1/bookings" in schema["paths"]
     assert "/api/v1/partner/professionals" in schema["paths"]
+    with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'contracts', 'openapi.json'), encoding='utf-8') as source:
+        assert json.load(source) == schema, 'Regenerate the committed OpenAPI snapshot after changing API schemas.'
 
 
 def test_b19_fixtures_validity():

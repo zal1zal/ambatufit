@@ -32,7 +32,7 @@ def load_red_flag_rules() -> List[Dict[str, Any]]:
 def evaluate_red_flags(evidence_entries: List[EvidenceEntry]) -> SafetyInfo:
     """
     Independent rule-based red flag screening.
-    Evaluates evidence codes against medically reviewed red flag rules.
+    Evaluates synthetic coursework rules; clinical review remains pending.
     Operates strictly independently from ML inference models.
     """
     rules = load_red_flag_rules()

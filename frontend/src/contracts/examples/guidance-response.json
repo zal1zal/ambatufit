@@ -1,0 +1,19 @@
+{
+  "items": [
+    {
+      "id": "demo-guidance",
+      "category": "general_wellbeing",
+      "title": "Catatan kebiasaan",
+      "description": "DATA DEMO: catat perubahan kebiasaan dan keluhan.",
+      "source": {
+        "provider_id": "ambatufit",
+        "reference_id": "synthetic-example"
+      },
+      "readiness": "ready"
+    }
+  ],
+  "provider_status": {
+    "ambatunoutrish": "not_configured",
+    "ambatomove": "not_configured"
+  }
+}

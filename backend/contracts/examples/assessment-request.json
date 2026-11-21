@@ -1,15 +1,10 @@
 {
   "evidence_entries": [
     {
-      "evidence_code": "E_JOINT_OR_MUSCLE_PAIN",
-      "value": true
-    },
-    {
-      "evidence_code": "E_FATIGUE",
-      "value": true
+      "evidence_code": "E_SEVERE_CHEST_PAIN",
+      "value": false
     }
   ],
-  "duration_days": 2,
-  "notes": "Nyeri lutut dan kelelahan setelah berolahraga pagi."
+  "duration_days": 1,
+  "notes": "DATA DEMO: hanya gejala sintetis"
 }
-

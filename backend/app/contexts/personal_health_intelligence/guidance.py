@@ -51,8 +51,11 @@ def generate_guidance(
             category = rule.get("category", "general_wellbeing")
             
             # Safety suppression
-            if category == "physical_activity" and safety_level in ("urgent", "review_recommended"):
+            if safety_level in ("urgent", "review_recommended"):
                 readiness = "needs_review"
+                if category == 'physical_activity':
+                    # Do not retain exercise instructions underneath the restriction.
+                    rule = {**rule, 'description': 'Tunda panduan aktivitas fisik sampai keluhan ditinjau oleh tenaga profesional.'}
 
             items.append(
                 GuidanceItem(

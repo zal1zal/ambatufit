@@ -65,10 +65,24 @@ class HealthService:
         6. Compose general non-diagnostic informational guidance.
         """
         catalog = get_catalog_dict()
+        seen = set()
         # Validate that all evidence codes exist in catalog
         for entry in req.evidence_entries:
             if entry.evidence_code not in catalog:
                 raise ValueError(f"Kode gejala '{entry.evidence_code}' tidak ditemukan dalam katalog.")
+            if entry.evidence_code in seen:
+                raise ValueError('Kode gejala tidak boleh berulang.')
+            seen.add(entry.evidence_code)
+            meta = catalog[entry.evidence_code]
+            allowed = [opt.value for opt in (meta.options or [])]
+            if meta.value_type == 'boolean' and type(entry.value) is not bool:
+                raise ValueError('Jawaban gejala harus bernilai boolean.')
+            if meta.value_type == 'categorical' and entry.value not in allowed:
+                raise ValueError('Pilihan gejala tidak sesuai katalog.')
+            if meta.value_type == 'multichoice' and (
+                not isinstance(entry.value, list) or any(v not in allowed for v in entry.value)
+            ):
+                raise ValueError('Pilihan gejala tidak sesuai katalog.')
 
         profile = self.repo.get_or_create_profile(user_id)
 
@@ -89,7 +103,7 @@ class HealthService:
             follow_up.append("Hindari aktivitas fisik berat hingga mendapatkan evaluasi tenaga medis.")
         else:
             # 3. Safe AI Inference attempt off-STB
-            ml_info = await ai_client.predict_symptoms(
+            ml_info = MLAssessmentInfo(status='unavailable', model_version=None) if any(catalog[e.evidence_code].demo_only for e in req.evidence_entries) else await ai_client.predict_symptoms(
                 age_years=profile.age_years,
                 sex_for_model=profile.sex_for_model,
                 evidence_entries=req.evidence_entries,
@@ -100,7 +114,7 @@ class HealthService:
             if ml_status == "completed":
                 summary = "Analisis pola gejala AI selesai. Pola keluhan Anda telah dicatat secara informatif."
                 general_info.append("Pola keluhan Anda cocok dengan profil gejala umum yang tercatat dalam dataset studi.")
-                follow_up.append("Pantau perkembangan gejala dalam 24-48 jam ke depan.")
+                follow_up.append("Catat perkembangan keluhan dan pertimbangkan konsultasi profesional jika keluhan berlanjut.")
             else:
                 status = "model_unavailable"
                 summary = "Ringkasan keluhan Anda berhasil disimpan. Analisis AI saat ini sedang tidak tersedia."
@@ -108,7 +122,7 @@ class HealthService:
                 follow_up.append("Anda dapat mencatat perkembangan keluhan secara berkala atau memilih konsultasi profesional.")
 
             if safety.level == "review_recommended":
-                follow_up.append("Disarankan menjadwalkan konsultasi dokter jika gejala tidak membaik dalam 3 hari.")
+                follow_up.append("Pertimbangkan konsultasi profesional untuk meninjau keluhan Anda.")
 
         asm = self.repo.create_assessment(
             user_id=user_id,
@@ -177,8 +191,13 @@ class HealthService:
         profile = self.repo.get_or_create_profile(user_id)
         
         # Check latest assessment safety state
-        assessments, _ = self.repo.list_assessments(user_id, limit=1)
-        latest_safety = assessments[0].safety_level if assessments else "none"
+        concern = self.db.query(Assessment).filter(
+            Assessment.user_id == user_id,
+            Assessment.safety_level.in_(['urgent', 'review_recommended']),
+        ).first()
+        # No review/resolution workflow exists in this MVP: a later
+        # questionnaire must not silently clear an earlier safety concern.
+        latest_safety = concern.safety_level if concern else 'none'
 
         items = generate_guidance(
             health_goal=profile.health_goal,

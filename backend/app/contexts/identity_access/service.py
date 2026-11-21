@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import Depends, HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from sqlalchemy.orm import Session
 
-from app.db import get_db, User
+from app.db import get_db, User, Assessment, Booking
 from app.config import settings
 from app.security import verify_password, create_access_token, decode_access_token
 from app.contexts.identity_access.repository import IdentityRepository
@@ -100,12 +100,27 @@ class IdentityService:
         )
 
     def create_consent(self, user_id: str, req: ConsentRequest) -> ConsentResponse:
+        assessment = self.db.get(Assessment, req.assessment_id)
+        booking = self.db.get(Booking, req.booking_id)
+        if (not assessment or assessment.user_id != user_id or not booking
+                or booking.user_id != user_id or booking.professional_id != req.professional_id):
+            raise HTTPException(status_code=403, detail='Izin harus sesuai penilaian, pemesanan, dan profesional milik Anda.')
+        expiry = req.expires_at or (datetime.now(timezone.utc) + timedelta(days=7))
+        if expiry <= datetime.now(timezone.utc):
+            raise HTTPException(status_code=422, detail='Masa berlaku izin harus di waktu mendatang.')
+        # Replacing scope must not leave a second active grant behind after revocation.
+        from app.db import AssessmentShareConsent
+        self.db.query(AssessmentShareConsent).filter(
+            AssessmentShareConsent.booking_id == req.booking_id,
+            AssessmentShareConsent.user_id == user_id,
+            AssessmentShareConsent.is_active == True,
+        ).update({'is_active': False, 'revoked_at': datetime.utcnow()})
         consent = self.repo.create_consent(
             user_id=user_id,
             assessment_id=req.assessment_id,
             professional_id=req.professional_id,
             booking_id=req.booking_id,
-            expires_at=req.expires_at,
+            expires_at=expiry.astimezone(timezone.utc).replace(tzinfo=None),
         )
         return ConsentResponse(id=consent.id, status="active" if consent.is_active else "revoked")
 

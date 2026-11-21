@@ -1,13 +1,14 @@
-from datetime import datetime
-from typing import List, Optional, Any, Dict
-from pydantic import BaseModel, Field
+from datetime import datetime, timezone
+from typing import List, Optional, Any, Dict, Literal
+from pydantic import Field, AwareDatetime
+from app.schemas.base import ApiModel as BaseModel
 
 
 class HealthProfileDTO(BaseModel):
     user_id: Optional[str] = None
-    age_years: Optional[int] = None
-    sex_for_model: str = "unknown"  # M | F | unknown
-    health_goal: str = "general_wellbeing"  # general_wellbeing | balanced_nutrition | active_lifestyle | muscle_gain
+    age_years: Optional[int] = Field(default=None, ge=0, le=130, strict=True)
+    sex_for_model: Literal['M', 'F', 'unknown'] = "unknown"
+    health_goal: Literal['general_wellbeing', 'balanced_nutrition', 'active_lifestyle', 'muscle_gain'] = "general_wellbeing"
     dietary_preferences: List[str] = Field(default_factory=list)
     activity_preferences: List[str] = Field(default_factory=list)
     known_conditions: List[str] = Field(default_factory=list)
@@ -23,8 +24,9 @@ class EvidenceCatalogItem(BaseModel):
     evidence_code: str
     label_id: str
     question_id: str
-    value_type: str  # boolean | categorical | multichoice
+    value_type: Literal['boolean', 'categorical', 'multichoice']
     options: Optional[List[EvidenceCatalogOption]] = None
+    demo_only: bool = True
 
 
 class EvidenceEntry(BaseModel):
@@ -33,25 +35,25 @@ class EvidenceEntry(BaseModel):
 
 
 class AssessmentRequest(BaseModel):
-    evidence_entries: List[EvidenceEntry]
+    evidence_entries: List[EvidenceEntry] = Field(min_length=1, max_length=200)
     duration_days: int = Field(default=1, ge=1)
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(default=None, max_length=2000)
 
 
 class SafetyInfo(BaseModel):
-    level: str = "none"  # none | review_recommended | urgent
+    level: Literal['none', 'review_recommended', 'urgent'] = "none"
     message: str = ""
     rule_ids: List[str] = Field(default_factory=list)
 
 
 class MLAssessmentInfo(BaseModel):
-    status: str = "unavailable"  # completed | unavailable | skipped
+    status: Literal['completed', 'unavailable', 'skipped'] = "unavailable"
     model_version: Optional[str] = None
 
 
 class AssessmentResponse(BaseModel):
     id: str
-    status: str  # completed | safety_alert | model_unavailable
+    status: Literal['completed', 'safety_alert', 'model_unavailable']
     created_at: datetime
     summary: str
     general_information: List[str] = Field(default_factory=list)
@@ -63,10 +65,10 @@ class AssessmentResponse(BaseModel):
 
 class AssessmentListItem(BaseModel):
     id: str
-    status: str
+    status: Literal['completed', 'safety_alert', 'model_unavailable']
     created_at: datetime
     summary: str
-    safety_level: str
+    safety_level: Literal['none', 'review_recommended', 'urgent']
 
 
 class GuidanceSource(BaseModel):
@@ -80,16 +82,17 @@ class GuidanceItem(BaseModel):
     title: str
     description: str
     source: GuidanceSource
-    readiness: str = "ready"  # ready | needs_review | unavailable
+    readiness: Literal['ready', 'needs_review', 'unavailable'] = "ready"
 
 
 class GuidanceResponse(BaseModel):
     items: List[GuidanceItem]
-    provider_status: Dict[str, str]
+    provider_status: Dict[str, Literal['available', 'unavailable', 'not_configured']]
 
 
 class MonitoringEntryRequest(BaseModel):
-    wellbeing_note: str
+    recorded_at: AwareDatetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    wellbeing_note: str = Field(min_length=1, max_length=2000)
     symptom_tags: List[str] = Field(default_factory=list)
 
 
@@ -102,7 +105,7 @@ class MonitoringEntryResponse(BaseModel):
 
 
 class CapabilityResponse(BaseModel):
-    ai_inference: str  # available | unavailable | not_configured
-    nutrition_integration: str  # available | unavailable | not_configured
-    gym_integration: str  # available | unavailable | not_configured
+    ai_inference: Literal['available', 'unavailable', 'not_configured']
+    nutrition_integration: Literal['available', 'unavailable', 'not_configured']
+    gym_integration: Literal['available', 'unavailable', 'not_configured']
 

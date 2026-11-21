@@ -7,16 +7,27 @@ import {
   evidenceSchema,
   monitoringInputSchema,
   profileUpdateSchema,
+  listSchema, userSchema, loginSchema, profileSchema, assessmentListItemSchema,
+  guidanceSchema, monitoringSchema, professionalSchema, slotSchema, bookingSchema,
+  consentInputSchema, consentSchema, capabilitiesSchema, sharedAssessmentSchema,
+  nutritionSchema, gymsSchema,
 } from '../contracts/schemas';
 
 const CORE = process.env.EXPO_PUBLIC_API_BASE_URL;
 const INTEGRATION = process.env.EXPO_PUBLIC_INTEGRATION_API_BASE_URL;
 const TIMEOUT = 10000;
-export function requireApiBaseUrls() {
-  if (!CORE?.endsWith('/api/v1')) throw new Error('EXPO_PUBLIC_API_BASE_URL must end in /api/v1');
-  if (!INTEGRATION?.endsWith('/integration/v1'))
+export function requireApiBaseUrls({ integration = false } = {}) {
+  if (!validBase(CORE, '/api/v1')) throw new Error('EXPO_PUBLIC_API_BASE_URL must end in /api/v1');
+  if (integration && !validBase(INTEGRATION, '/integration/v1'))
     throw new Error('EXPO_PUBLIC_INTEGRATION_API_BASE_URL must end in /integration/v1');
   return { CORE, INTEGRATION };
+}
+function validBase(base, suffix) {
+  if (!base) return false;
+  try {
+    const parsed = new URL(base);
+    return ['http:', 'https:'].includes(parsed.protocol) && !parsed.username && !parsed.password && !parsed.search && !parsed.hash && parsed.pathname.replace(/\/$/, '') === suffix;
+  } catch { return false; }
 }
 function url(base, path) {
   if (!base || !path.startsWith('/'))
@@ -76,7 +87,8 @@ async function request({
   }
 }
 const core = (path, method = 'GET', body) => request({ path, method, body });
-const partner = (path) => request({ base: INTEGRATION, path, auth: false, timeout: 8000 });
+const partner = (path) => request({ base: INTEGRATION, path, timeout: 8000 });
+const checked = async (schema, response) => validateResponse(schema, await response);
 const qs = (values) => {
   const p = new URLSearchParams();
   Object.entries(values).forEach(([k, v]) => {
@@ -108,20 +120,20 @@ function validateResponse(schema, value) {
 export const ApiService = {
   auth: {
     login: async (email, password) => {
-      const data = await core('/auth/login', 'POST', { email, password });
+      const data = await checked(loginSchema, request({ path: '/auth/login', method: 'POST', body: { email, password }, auth: false }));
       if (data?.access_token) await AuthSession.set(data.access_token);
       return data;
     },
-    me: () => core('/auth/me'),
+    me: () => checked(userSchema, core('/auth/me')),
   },
   profile: {
-    get: () => core('/profile'),
-    update: (profile) => core('/profile', 'PUT', validate(profileUpdateSchema, profile)),
+    get: () => checked(profileSchema, core('/profile')),
+    update: (profile) => checked(profileSchema, core('/profile', 'PUT', validate(profileUpdateSchema, profile))),
   },
   assessments: {
     evidences: async () => {
       const data = await core('/assessments/evidences');
-      if (data?.items && !data.items.every((x) => evidenceSchema.safeParse(x).success))
+      if (!listSchema(evidenceSchema).safeParse(data).success)
         throw new ApiError({
           code: 'invalid_response',
           message: 'Katalog pertanyaan dari layanan belum dapat dibaca.',
@@ -133,43 +145,43 @@ export const ApiService = {
         assessmentResultSchema,
         await core('/assessments', 'POST', validate(assessmentInputSchema, input)),
       ),
-    list: (limit = 20, offset = 0) => core(`/assessments${qs({ limit, offset })}`),
+    list: (limit = 20, offset = 0) => checked(listSchema(assessmentListItemSchema), core(`/assessments${qs({ limit, offset })}`)),
     get: async (id) =>
       validateResponse(
         assessmentResultSchema,
         await core(`/assessments/${encodeURIComponent(id)}`),
       ),
   },
-  guidance: { get: () => core('/guidance') },
+  guidance: { get: () => checked(guidanceSchema, core('/guidance')) },
   monitoring: {
-    list: (limit = 20, offset = 0) => core(`/monitoring/entries${qs({ limit, offset })}`),
-    create: (entry) => core('/monitoring/entries', 'POST', validate(monitoringInputSchema, entry)),
+    list: (limit = 20, offset = 0) => checked(listSchema(monitoringSchema), core(`/monitoring/entries${qs({ limit, offset })}`)),
+    create: (entry) => checked(monitoringSchema, core('/monitoring/entries', 'POST', validate(monitoringInputSchema, entry))),
   },
   professionals: {
-    list: (specialty) => core(`/professionals${qs({ specialty })}`),
-    slots: (id) => core(`/professionals/${encodeURIComponent(id)}/slots`),
+    list: (specialty) => checked(listSchema(professionalSchema), core(`/professionals${qs({ specialty })}`)),
+    slots: (id) => checked(listSchema(slotSchema), core(`/professionals/${encodeURIComponent(id)}/slots`)),
   },
   bookings: {
     create: (professionalId, slotId) =>
-      core(
+      checked(bookingSchema, core(
         '/bookings',
         'POST',
         validate(bookingInputSchema, { professional_id: professionalId, slot_id: slotId }),
-      ),
-    list: () => core('/bookings'),
+      )),
+    list: () => checked(listSchema(bookingSchema), core('/bookings')),
   },
   consents: {
-    grantAssessmentSharing: (payload) => core('/consents/assessment-sharing', 'POST', payload),
+    grantAssessmentSharing: (payload) => checked(consentSchema, core('/consents/assessment-sharing', 'POST', validate(consentInputSchema, payload))),
     revokeAssessmentSharing: (id) =>
       core(`/consents/assessment-sharing/${encodeURIComponent(id)}`, 'DELETE'),
   },
   integration: {
-    nutritionFoods: (query) => partner(`/nutrition/foods${qs({ query })}`),
-    fitnessGyms: (city) => partner(`/fitness/gyms${qs({ city })}`),
+    nutritionFoods: (query) => checked(nutritionSchema, partner(`/nutrition/foods${qs({ query })}`)),
+    fitnessGyms: (city) => checked(gymsSchema, partner(`/fitness/gyms${qs({ city })}`)),
   },
   professional: {
     sharedAssessment: (id) =>
-      core(`/professional/bookings/${encodeURIComponent(id)}/shared-assessment`),
+      checked(sharedAssessmentSchema, core(`/professional/bookings/${encodeURIComponent(id)}/shared-assessment`)),
   },
-  system: { capabilities: () => core('/system/capabilities') },
+  system: { capabilities: () => checked(capabilitiesSchema, core('/system/capabilities')) },
 };

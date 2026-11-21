@@ -40,8 +40,10 @@ class AIClient:
                 res = await client.post(self.base_url, json=payload, headers=headers)
                 if res.status_code == 200:
                     data = res.json()
+                    if data.get('status') != 'completed' or not data.get('model_version'):
+                        return MLAssessmentInfo(status='unavailable', model_version=None)
                     return MLAssessmentInfo(
-                        status=data.get("status", "completed"),
+                        status='completed',
                         model_version=data.get("model_version"),
                     )
                 else:

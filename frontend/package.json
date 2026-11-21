@@ -11,6 +11,8 @@
     "lint": "eslint . --ext .js,.jsx",
     "verify:tokens": "node scripts/verify-design-tokens.js",
     "verify:contracts": "node scripts/verify-api-contract.js",
+    "test:api": "node scripts/smoke-api.js",
+    "sync:contracts": "node scripts/sync-contracts.js",
     "build:android": "eas build --platform android --profile production",
     "verify:release": "node scripts/verify-release.js",
     "format": "prettier --write \"src/**/*.{js,jsx}\" \"__tests__/**/*.{js,jsx}\" \"scripts/*.js\" \"*.js\" \"*.json\"",
@@ -40,6 +42,8 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@testing-library/react-native": "^13.2.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
     "babel-preset-expo": "~58.0.0",
     "eslint": "^9.25.0",
     "jest": "~30.5.2",
