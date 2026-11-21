@@ -18,6 +18,12 @@
       "expo-font",
       "expo-status-bar",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Izinkan AmbatuFit mengakses kamera untuk memindai barcode kemasan obat dan memeriksa izin edar BPOM."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "imageWidth": 390,

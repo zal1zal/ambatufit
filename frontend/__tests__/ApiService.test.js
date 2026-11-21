@@ -51,6 +51,8 @@ test('rejects an empty evidence payload before sending a request', async () => {
 test.each([
   () => ApiService.assessments.evidences(),
   () => ApiService.guidance.get(),
+  () => ApiService.medications.search(),
+  () => ApiService.medications.forAssessment('a1'),
   () => ApiService.profile.get(),
   () => ApiService.integration.nutritionFoods('ayam'),
   () => ApiService.integration.fitnessGyms('Bandung'),

@@ -1,8 +1,8 @@
 {
   "evidence_entries": [
     {
-      "evidence_code": "E_SEVERE_CHEST_PAIN",
-      "value": false
+      "evidence_code": "E_103",
+      "value": true
     }
   ],
   "duration_days": 1,

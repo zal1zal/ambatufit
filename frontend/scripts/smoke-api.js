@@ -39,6 +39,11 @@ async function main() {
   const guidance = await api.guidance.get();
   assert(guidance.items.length > 0);
   assert.equal(guidance.provider_status.ambatunoutrish, 'not_configured');
+  assert.equal(guidance.provider_status.ambatumove, 'not_configured');
+  const medSearch = await api.medications.search({ query: 'demam' });
+  assert.equal(medSearch.information_status, 'unavailable');
+  const medAsm = await api.medications.forAssessment(result.id);
+  assert.equal(medAsm.information_status, 'unavailable');
   const capabilities = await api.system.capabilities();
   assert.notEqual(capabilities.ai_inference, 'available');
   for (const response of [await api.integration.nutritionFoods('ayam'), await api.integration.fitnessGyms('Bandung')]) {

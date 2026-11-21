@@ -32,7 +32,7 @@ def test_monitoring_preserves_client_timestamp(client, demo_user_token):
     assert listed['items'][0]['recorded_at'] == result.json()['recorded_at']
 
 
-@pytest.mark.parametrize('entries', [[], [{"evidence_code": "E_FATIGUE", "value": "true"}], [{"evidence_code": "E_COUGH", "value": "invalid"}], [{"evidence_code": "E_FATIGUE", "value": True}] * 2])
+@pytest.mark.parametrize('entries', [[], [{"evidence_code": "E_89", "value": "true"}], [{"evidence_code": "E_56", "value": "invalid"}], [{"evidence_code": "E_89", "value": True}] * 2])
 def test_malformed_evidence_rejected(client, demo_user_token, entries):
     response = client.post('/api/v1/assessments', headers=auth(demo_user_token), json={"evidence_entries": entries})
     assert response.status_code == 422
@@ -41,15 +41,15 @@ def test_malformed_evidence_rejected(client, demo_user_token, entries):
 def test_mock_provider_is_not_reported_as_live(client, demo_user_token):
     response = client.get('/api/v1/guidance', headers=auth(demo_user_token))
     assert response.status_code == 200
-    assert response.json()['provider_status'] == {'ambatunoutrish': 'not_configured', 'ambatomove': 'not_configured'}
+    assert response.json()['provider_status'] == {'ambatunoutrish': 'not_configured', 'ambatumove': 'not_configured'}
 
 
-def test_later_questionnaire_does_not_clear_unresolved_safety_concern(client, demo_user_token):
+def test_later_questionnaire_does_not_clear_unresolved_safety_concern(client, demo_user_token, reviewed_red_flag_rules):
     headers = auth(demo_user_token)
     client.put('/api/v1/profile', headers=headers, json={'health_goal': 'active_lifestyle'})
-    urgent = client.post('/api/v1/assessments', headers=headers, json={'evidence_entries': [{'evidence_code': 'E_SEVERE_CHEST_PAIN', 'value': True}, {'evidence_code': 'E_SHORTNESS_OF_BREATH', 'value': True}]})
+    urgent = client.post('/api/v1/assessments', headers=headers, json={'evidence_entries': [{'evidence_code': 'E_14', 'value': True}, {'evidence_code': 'E_66', 'value': True}]})
     assert urgent.json()['status'] == 'safety_alert'
-    client.post('/api/v1/assessments', headers=headers, json={'evidence_entries': [{'evidence_code': 'E_FATIGUE', 'value': False}]})
+    client.post('/api/v1/assessments', headers=headers, json={'evidence_entries': [{'evidence_code': 'E_89', 'value': False}]})
     items = client.get('/api/v1/guidance', headers=headers).json()['items']
     assert all(item['readiness'] == 'needs_review' for item in items)
     assert all('150 menit' not in item['description'] for item in items)
@@ -62,7 +62,7 @@ def test_scoped_consent_and_booking_revocation_flow(client, db_session, demo_use
     db_session.commit()
     headers = auth(demo_user_token)
     booking = client.post('/api/v1/bookings', headers=headers, json={"professional_id": "test-pro-01", "slot_id": slot.id}).json()
-    assessment = client.post('/api/v1/assessments', headers=headers, json={"evidence_entries": [{"evidence_code": "E_FATIGUE", "value": True}]}).json()
+    assessment = client.post('/api/v1/assessments', headers=headers, json={"evidence_entries": [{"evidence_code": "E_89", "value": True}]}).json()
     payload = {"assessment_id": assessment['id'], "professional_id": "test-pro-01", "booking_id": booking['id'], "grant": True, "expires_at": (now + timedelta(hours=2)).isoformat()}
     assert client.post('/api/v1/consents/assessment-sharing', headers=headers, json={**payload, 'grant': False}).status_code == 422
     assert client.post('/api/v1/consents/assessment-sharing', headers=headers, json={**payload, 'professional_id': 'different-pro'}).status_code == 403

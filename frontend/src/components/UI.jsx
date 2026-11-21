@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -38,9 +38,15 @@ export function PrimaryButton({ title, onPress, disabled, loading, accessibility
     </Pressable>
   );
 }
-export function SecondaryButton({ title, onPress, style }) {
+export function SecondaryButton({ title, onPress, style, disabled }) {
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={[styles.secondary, style]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      disabled={disabled}
+      onPress={onPress}
+      style={[styles.secondary, disabled && { opacity: 0.45 }, style]}
+    >
       <Text style={styles.secondaryText}>{title}</Text>
     </Pressable>
   );
@@ -55,10 +61,11 @@ export function TextField({
   keyboardType,
   multiline,
   accessibilityLabel,
+  dark = false,
 }) {
   return (
     <View style={{ gap: 8, marginBottom: 12 }}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, dark && { color: tokens.color.textOnDark }]}>{label}</Text>
       <TextInput
         accessibilityLabel={accessibilityLabel || label}
         value={value}
@@ -114,9 +121,320 @@ export function SafetyNotice({ level = 'urgent', message }) {
       <Text
         style={[styles.cardTitle, { color: urgent ? tokens.color.danger : tokens.color.warning }]}
       >
-        {urgent ? 'PENTING: BANTUAN MEDIS' : 'PERLU PENINJAUAN'}
+        {urgent ? 'PENTING: BANTUAN MEDIS' : 'DISCLAIMER'}
       </Text>
       <Text style={styles.body}>{message}</Text>
+    </View>
+  );
+}
+
+const stripInternalRefs = (raw) =>
+  String(raw || '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\[(?:Sumber|Ref|SRC|E\d|D\d|M\d)[^\]]*\]/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+export function FormattedText({ text, dark = false }) {
+  const color = dark ? tokens.color.textOnDark : tokens.color.text;
+  const muted = dark ? tokens.color.mutedOnDark : tokens.color.textMuted;
+  const lines = String(text || '').split('\n');
+  return (
+    <View style={{ gap: 6, marginTop: 4 }}>
+      {lines.map((rawLine, idx) => {
+        const line = stripInternalRefs(rawLine);
+        if (!line) return <View key={idx} style={{ height: 4 }} />;
+        if (line.startsWith('### ')) {
+          return (
+            <Text
+              key={idx}
+              style={{
+                fontFamily: fontFamilies.bodySemiBold,
+                fontSize: 18,
+                lineHeight: 25,
+                color: dark ? tokens.color.primary : tokens.color.text,
+                marginTop: idx > 0 ? 8 : 0,
+              }}
+            >
+              {line.slice(4)}
+            </Text>
+          );
+        }
+        if (line.startsWith('• ') || line.startsWith('- ')) {
+          return (
+            <Text
+              key={idx}
+              style={{
+                fontFamily: fontFamilies.body,
+                fontSize: 15,
+                lineHeight: 22,
+                color,
+                paddingLeft: 8,
+              }}
+            >
+              • {line.slice(2).trim()}
+            </Text>
+          );
+        }
+        return (
+          <Text
+            key={idx}
+            style={{ fontFamily: fontFamilies.body, fontSize: 15, lineHeight: 22, color: dark ? muted : color }}
+          >
+            {line}
+          </Text>
+        );
+      })}
+    </View>
+  );
+}
+
+export function SimpleTable({ headers = [], rows = [] }) {
+  if (!headers.length || !rows.length) return null;
+  return (
+    <View
+      style={{
+        borderWidth: 1,
+        borderColor: tokens.color.border,
+        borderRadius: tokens.radius.sm,
+        overflow: 'hidden',
+        marginTop: 6,
+      }}
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          backgroundColor: tokens.color.warningBackground,
+          borderBottomWidth: 1,
+          borderColor: tokens.color.border,
+        }}
+      >
+        {headers.map((h, i) => (
+          <Text
+            key={i}
+            style={{
+              flex: 1,
+              padding: 8,
+              fontFamily: fontFamilies.bodySemiBold,
+              fontSize: 13,
+              color: tokens.color.text,
+            }}
+          >
+            {h}
+          </Text>
+        ))}
+      </View>
+      {rows.map((row, rIdx) => (
+        <View
+          key={rIdx}
+          style={{
+            flexDirection: 'row',
+            backgroundColor: rIdx % 2 === 0 ? tokens.color.surface : tokens.color.background,
+            borderBottomWidth: rIdx < rows.length - 1 ? 1 : 0,
+            borderColor: tokens.color.border,
+          }}
+        >
+          {row.map((cell, cIdx) => (
+            <Text
+              key={cIdx}
+              style={{
+                flex: 1,
+                padding: 8,
+                fontFamily: cIdx === 0 ? fontFamilies.bodySemiBold : fontFamilies.body,
+                fontSize: 13,
+                lineHeight: 19,
+                color: tokens.color.text,
+              }}
+            >
+              {String(cell ?? '—')}
+            </Text>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export function cleanWebCitations(citations) {
+  return (citations || []).filter((c) => {
+    const url = String(c?.url || '').trim();
+    if (!url.startsWith('https://')) return false;
+    if (url.includes('example.invalid')) return false;
+    // Exclude static synthetic benchmark DOI or raw fallback links from visual "Referensi Internet"
+    if (url.includes('doi.org/10.6084/m9.figshare.22687585')) return false;
+    return true;
+  });
+}
+
+export function formatIndonesianDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  const months = [
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
+  ];
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, pukul ${hh}.${mm}`;
+}
+
+export function formatSlotDateParts(startsAt, endsAt) {
+  const days = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+  const shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const start = new Date(startsAt);
+  if (Number.isNaN(start.getTime())) {
+    return { day: 'JADWAL', date: String(startsAt || '—'), time: '' };
+  }
+  const sh = String(start.getHours()).padStart(2, '0');
+  const sm = String(start.getMinutes()).padStart(2, '0');
+  let timeRange = `${sh}.${sm} WIB`;
+  if (endsAt) {
+    const end = new Date(endsAt);
+    if (!Number.isNaN(end.getTime())) {
+      const eh = String(end.getHours()).padStart(2, '0');
+      const em = String(end.getMinutes()).padStart(2, '0');
+      timeRange = `${sh}.${sm} – ${eh}.${em} WIB`;
+    }
+  }
+  return {
+    day: days[start.getDay()],
+    date: `${start.getDate()} ${shortMonths[start.getMonth()]} ${start.getFullYear()}`,
+    time: timeRange,
+  };
+}
+
+let ExpoCameraView = null;
+let useExpoCameraPermissions = null;
+try {
+  const expoCam = require('expo-camera');
+  ExpoCameraView = expoCam?.CameraView || null;
+  useExpoCameraPermissions = expoCam?.useCameraPermissions || null;
+} catch {
+  ExpoCameraView = null;
+  useExpoCameraPermissions = null;
+}
+
+export function CameraBarcodeScanner({ onScanned }) {
+  const [scanned, setScanned] = useState(false);
+  const permHookRes = typeof useExpoCameraPermissions === 'function' ? useExpoCameraPermissions() : null;
+  const permission = permHookRes?.[0] || null;
+  const requestPermission = permHookRes?.[1] || null;
+
+  if (!ExpoCameraView || !useExpoCameraPermissions || Platform.OS === 'web') {
+    return (
+      <View
+        style={{
+          padding: 12,
+          borderRadius: tokens.radius.sm,
+          borderWidth: 1,
+          borderColor: tokens.color.border,
+          backgroundColor: 'rgba(255,255,255,0.06)',
+          gap: 6,
+        }}
+      >
+        <Text style={{ fontFamily: fontFamilies.bodySemiBold, fontSize: 14, color: tokens.color.textOnDark }}>
+          Pemindai kamera aktif di perangkat Android / iOS (Expo Go)
+        </Text>
+        <Text style={{ fontFamily: fontFamilies.body, fontSize: 13, color: tokens.color.mutedOnDark }}>
+          Pada peramban web atau mode pengujian, silakan ketik angka barcode (EAN-13) / Nomor Izin Edar di kolom bawah.
+        </Text>
+      </View>
+    );
+  }
+
+  if (!permission) {
+    return <ActivityIndicator color={tokens.color.primary} style={{ marginVertical: 12 }} />;
+  }
+
+  if (!permission.granted) {
+    return (
+      <View
+        style={{
+          padding: 14,
+          borderRadius: tokens.radius.sm,
+          borderWidth: 1,
+          borderColor: tokens.color.primary,
+          backgroundColor: 'rgba(255,255,255,0.06)',
+          gap: 10,
+        }}
+      >
+        <Text style={{ fontFamily: fontFamilies.bodySemiBold, fontSize: 14, color: tokens.color.textOnDark }}>
+          Izin Kamera Diperlukan
+        </Text>
+        <Text style={{ fontFamily: fontFamilies.body, fontSize: 13, color: tokens.color.mutedOnDark }}>
+          Izinkan akses kamera agar Anda dapat mengarahkan ponsel ke barcode (EAN-13) pada kemasan obat.
+        </Text>
+        <PrimaryButton title="Buka Izin Kamera" onPress={() => requestPermission && requestPermission()} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ gap: 8 }}>
+      <View
+        style={{
+          height: 230,
+          borderRadius: tokens.radius.md,
+          overflow: 'hidden',
+          borderWidth: 2,
+          borderColor: tokens.color.primary,
+          backgroundColor: '#000',
+          position: 'relative',
+        }}
+      >
+        <ExpoCameraView
+          style={{ flex: 1 }}
+          facing="back"
+          barcodeScannerSettings={{
+            barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e', 'code128', 'qr'],
+          }}
+          onBarcodeScanned={
+            scanned
+              ? undefined
+              : ({ data }) => {
+                  if (!data) return;
+                  setScanned(true);
+                  onScanned?.(String(data).trim());
+                }
+          }
+        />
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: '22%',
+            left: '12%',
+            right: '12%',
+            bottom: '22%',
+            borderWidth: 2,
+            borderColor: tokens.color.primary,
+            borderRadius: tokens.radius.sm,
+          }}
+        />
+      </View>
+      <Text style={{ fontFamily: fontFamilies.body, fontSize: 13, color: tokens.color.mutedOnDark }}>
+        {scanned
+          ? 'Barcode berhasil dipindai.'
+          : 'Arahkan kotak bidik kamera tepat ke barcode kemasan obat.'}
+      </Text>
+      {scanned && (
+        <SecondaryButton
+          title="Pindai Ulang"
+          onPress={() => setScanned(false)}
+          style={{ backgroundColor: tokens.color.surface }}
+        />
+      )}
     </View>
   );
 }
@@ -273,13 +591,28 @@ export function EvidenceInput({ evidence, value, onChange, error }) {
   const options = evidence.options || evidence.allowed_values || [];
   const type = String(evidence.value_type || 'text').toLowerCase();
   const boolean = type.includes('bool');
-  const label =
-    evidence.question_id || evidence.label_id || 'Pertanyaan gejala';
-  return (
-    <Card style={error ? { borderColor: tokens.color.danger } : null}>
-      <Text style={styles.cardTitle}>{label}</Text>
-      {evidence.description ? <Text style={styles.bodySmall}>{evidence.description}</Text> : null}
-      {boolean || options.length ? (
+  const multi = type === 'multichoice';
+  const label = evidence.question_id || evidence.label_id || 'Pertanyaan gejala';
+  const [draftText, setDraftText] = useState('');
+  const [pickedCodes, setPickedCodes] = useState(() =>
+    Array.isArray(value) ? value : value != null && value !== '' ? [value] : [],
+  );
+
+  const isNumericScale =
+    options.length > 5 &&
+    options.every((opt) => typeof (typeof opt === 'object' ? opt.value : opt) === 'number');
+
+  const labelForVal = (val) => {
+    const match = options.find((o) => (typeof o === 'object' ? o.value : o) === val);
+    if (!match) return String(val);
+    return typeof match === 'object' ? (match.label_id ?? String(val)) : String(match);
+  };
+
+  if (boolean || (options.length > 0 && options.length <= 5)) {
+    return (
+      <Card style={error ? { borderColor: tokens.color.danger } : null}>
+        <Text style={styles.cardTitle}>{label}</Text>
+        {evidence.description ? <Text style={styles.bodySmall}>{evidence.description}</Text> : null}
         <View style={{ gap: 8, marginTop: 8 }}>
           {(options.length ? options : [true, false]).map((opt, index) => {
             const v = typeof opt === 'object' ? (opt.value ?? opt.code) : opt;
@@ -291,14 +624,21 @@ export function EvidenceInput({ evidence, value, onChange, error }) {
                     ? 'Ya'
                     : 'Tidak'
                   : `Pilihan ${index + 1}`;
-            const multi = type === 'multichoice';
             const selected = multi ? Array.isArray(value) && value.includes(v) : value === v;
             return (
               <Pressable
                 key={String(v)}
                 accessibilityRole={multi ? 'checkbox' : 'radio'}
                 accessibilityState={{ checked: selected }}
-                onPress={() => onChange(multi ? (selected ? value.filter((x) => x !== v) : [...(Array.isArray(value) ? value : []), v]) : v)}
+                onPress={() =>
+                  onChange(
+                    multi
+                      ? selected
+                        ? value.filter((x) => x !== v)
+                        : [...(Array.isArray(value) ? value : []), v]
+                      : v,
+                  )
+                }
                 style={[styles.option, selected && styles.selected]}
               >
                 <Text style={styles.body}>{choiceLabel}</Text>
@@ -306,15 +646,156 @@ export function EvidenceInput({ evidence, value, onChange, error }) {
             );
           })}
         </View>
-      ) : (
+      </Card>
+    );
+  }
+
+  if (isNumericScale) {
+    return (
+      <Card style={error ? { borderColor: tokens.color.danger } : null}>
+        <Text style={styles.cardTitle}>{label}</Text>
+        <Text style={styles.bodySmall}>Ketik angka 0 sampai 10 atau pilih skala cepat:</Text>
         <TextInput
           accessibilityLabel={label}
           value={value == null ? '' : String(value)}
-          onChangeText={onChange}
-          keyboardType={type.includes('number') ? 'numeric' : 'default'}
+          onChangeText={(txt) => {
+            const cleaned = txt.replace(/[^0-9]/g, '');
+            if (!cleaned) onChange(undefined);
+            else {
+              const num = Math.min(10, Math.max(0, Number(cleaned)));
+              onChange(num);
+            }
+          }}
+          keyboardType="numeric"
+          placeholder="0 - 10"
           style={styles.input}
         />
-      )}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+          {options.map((opt) => {
+            const v = typeof opt === 'object' ? opt.value : opt;
+            const selected = value === v;
+            return (
+              <Pressable
+                key={String(v)}
+                onPress={() => onChange(v)}
+                style={{
+                  minWidth: 38,
+                  paddingVertical: 8,
+                  paddingHorizontal: 10,
+                  borderRadius: tokens.radius.sm,
+                  borderWidth: 1,
+                  borderColor: selected ? tokens.color.text : tokens.color.border,
+                  backgroundColor: selected ? tokens.color.primary : tokens.color.surface,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={styles.bodySmall}>{String(v)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Card>
+    );
+  }
+
+  if (options.length > 5) {
+    const q = draftText.trim().toLowerCase();
+    const suggestions = q
+      ? options
+          .filter((opt) => {
+            const lbl = (typeof opt === 'object' ? opt.label_id : String(opt)).toLowerCase();
+            return lbl.includes(q);
+          })
+          .slice(0, 5)
+      : [];
+
+    const addChoice = (val) => {
+      if (multi) {
+        const next = pickedCodes.includes(val) ? pickedCodes : [...pickedCodes, val];
+        setPickedCodes(next);
+        setDraftText('');
+        onChange(next);
+      } else {
+        setPickedCodes([val]);
+        setDraftText(labelForVal(val));
+        onChange(val);
+      }
+    };
+
+    const removeChoice = (val) => {
+      const next = pickedCodes.filter((x) => x !== val);
+      setPickedCodes(next);
+      onChange(multi ? (next.length ? next : undefined) : undefined);
+    };
+
+    return (
+      <Card style={error ? { borderColor: tokens.color.danger } : null}>
+        <Text style={styles.cardTitle}>{label}</Text>
+        <Text style={styles.bodySmall}>
+          Tulis jawaban Anda langsung di kolom ini (tersedia saran otomatis saat mengetik).
+        </Text>
+        <TextInput
+          accessibilityLabel={label}
+          value={draftText}
+          onChangeText={(txt) => {
+            setDraftText(txt);
+            const trimmed = txt.trim();
+            if (multi) {
+              const combined = trimmed ? [...pickedCodes, trimmed] : pickedCodes;
+              onChange(combined.length ? combined : undefined);
+            } else {
+              onChange(trimmed || undefined);
+            }
+          }}
+          placeholder="Contoh: ulu hati, kepala, kaki kanan, nyeri tajam..."
+          style={styles.input}
+        />
+        {pickedCodes.length > 0 && (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+            {pickedCodes.map((code) => (
+              <Pressable
+                key={String(code)}
+                onPress={() => removeChoice(code)}
+                style={[styles.option, styles.selected, { minHeight: 36, paddingVertical: 6, paddingHorizontal: 10 }]}
+              >
+                <Text style={styles.bodySmall}>{labelForVal(code)} ×</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+        {suggestions.length > 0 && (
+          <View style={{ gap: 6, marginTop: 4 }}>
+            <Text style={styles.bodySmall}>Pilih saran yang sesuai:</Text>
+            {suggestions.map((opt) => {
+              const v = typeof opt === 'object' ? (opt.value ?? opt.code) : opt;
+              const lbl = typeof opt === 'object' ? (opt.label_id ?? String(v)) : String(opt);
+              return (
+                <Pressable
+                  key={String(v)}
+                  onPress={() => addChoice(v)}
+                  style={[styles.option, { minHeight: 40, paddingVertical: 8 }]}
+                >
+                  <Text style={styles.bodySmall}>+ {lbl}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </Card>
+    );
+  }
+
+  return (
+    <Card style={error ? { borderColor: tokens.color.danger } : null}>
+      <Text style={styles.cardTitle}>{label}</Text>
+      {evidence.description ? <Text style={styles.bodySmall}>{evidence.description}</Text> : null}
+      <TextInput
+        accessibilityLabel={label}
+        value={value == null ? '' : String(value)}
+        onChangeText={onChange}
+        keyboardType={type.includes('number') ? 'numeric' : 'default'}
+        style={styles.input}
+      />
     </Card>
   );
 }

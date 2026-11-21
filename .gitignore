@@ -1,46 +1,64 @@
+# Python & Build
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyo
 *.pyd
 *.so
-
 build/
 dist/
 *.egg-info/
 *.egg
 .eggs/
 wheels/
-
 .mypy_cache/
 .dmypy.json
 dmypy.json
 .pytype/
+.ruff_cache/
+.hypothesis/
 
+# Virtual Environments
 .venv/
 venv/
 env/
 ENV/
 .env/
 
+# Environment & Secrets
 .env
 .env.*
 !.env.example
 
+# Testing & Coverage
 .pytest_cache/
 .coverage
 .coverage.*
 coverage.xml
 htmlcov/
+coverage/
 *.coveragerc
 .tox/
 nosetests.xml
 test-results/
+junit.xml
 
+# Databases, Runtime State & Backups
 *.db
+*.db-wal
+*.db-shm
+*.db-journal
 *.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
 *.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+backend/var/
+backups/
 
+# AI / ML Datasets, RAG Index & Model Artifacts
 *.joblib
 *.pkl
 *.pickle
@@ -48,7 +66,44 @@ test-results/
 *.pt
 *.pth
 *.onnx
+*.faiss
+*.safetensors
+backend/ai/data/
+backend/ai/artifacts/
 
+# Node.js, Expo & Frontend Generated Files
+node_modules/
+.expo/
+.expo-shared/
+.expo-export/
+web-build/
+.metro-health-check*
+.eslintcache
+.npm/
+.cache/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Mobile Native Outputs, Signing Credentials & Build Artifacts
+frontend/android/
+frontend/ios/
+credentials.json
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+*.apk
+*.aab
+*.ipa
+!Aplikasi_Release.apk
+
+# IDE, OS & Temporary/Log Files
 .vscode/
 .idea/
 *.iml
@@ -57,15 +112,13 @@ test-results/
 *.swp
 *.swo
 *~
-
 .DS_Store
 Thumbs.db
 desktop.ini
+Desktop.ini
 ehthumbs.db
-
 *.log
 logs/
-
 *.bak
 *.tmp
 *.temp

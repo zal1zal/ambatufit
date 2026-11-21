@@ -1,81 +1,41 @@
 [
-    {
-        "rule_id":  "RF-001",
-        "evidence_codes":  [
-                               "E_SEVERE_CHEST_PAIN",
-                               "E_SHORTNESS_OF_BREATH"
-                           ],
-        "condition":  "Nyeri dada hebat disertai sesak napas berat atau rasa tertekan di dada",
-        "severity":  "urgent",
-        "message":  "Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
-        "source_url":  "https://www.kemkes.go.id/id/layanan/kegawatdaruratan-kardiovaskular",
-        "reviewed_by":  null,
-        "reviewed_at":  null,
-        "rule_version":  "1.0.0",
-        "demo_only":  true,
-        "review_status":  "pending_clinical_review"
-    },
-    {
-        "rule_id":  "RF-002",
-        "evidence_codes":  [
-                               "E_SUDDEN_NUMBNESS",
-                               "E_SLURRED_SPEECH"
-                           ],
-        "condition":  "Kelemahan atau mati rasa mendadak pada satu sisi tubuh atau kesulitan berbicara (FAST signs)",
-        "severity":  "urgent",
-        "message":  "Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
-        "source_url":  "https://www.stroke.org/en/about-stroke/stroke-symptoms",
-        "reviewed_by":  null,
-        "reviewed_at":  null,
-        "rule_version":  "1.0.0",
-        "demo_only":  true,
-        "review_status":  "pending_clinical_review"
-    },
-    {
-        "rule_id":  "RF-003",
-        "evidence_codes":  [
-                               "E_HIGH_FEVER",
-                               "E_STIFF_NECK"
-                           ],
-        "condition":  "Demam tinggi mendadak disertai kaku kuduk dan penurunan kesadaran",
-        "severity":  "urgent",
-        "message":  "Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
-        "source_url":  "https://www.who.int/news-room/fact-sheets/detail/meningitis",
-        "reviewed_by":  null,
-        "reviewed_at":  null,
-        "rule_version":  "1.0.0",
-        "demo_only":  true,
-        "review_status":  "pending_clinical_review"
-    },
-    {
-        "rule_id":  "RF-004",
-        "evidence_codes":  [
-                               "E_SEVERE_ALLERGIC_REACTION",
-                               "E_THROAT_TIGHTNESS"
-                           ],
-        "condition":  "Pembengkakan pada bibir/tenggorokan dan kesulitan bernapas setelah paparan zat tertentu",
-        "severity":  "urgent",
-        "message":  "Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
-        "source_url":  "https://www.resus.org.uk/library/additional-guidance/guidance-anaphylaxis",
-        "reviewed_by":  null,
-        "reviewed_at":  null,
-        "rule_version":  "1.0.0",
-        "demo_only":  true,
-        "review_status":  "pending_clinical_review"
-    },
-    {
-        "rule_id":  "RF-005",
-        "evidence_codes":  [
-                               "E_PERSISTENT_FEVER_OVER_3_DAYS"
-                           ],
-        "condition":  "Demam berlanjut lebih dari 3 hari tanpa penurunan",
-        "severity":  "review_recommended",
-        "message":  "Demam yang berlangsung lebih dari 3 hari disarankan untuk diperiksa oleh dokter untuk evaluasi lebih lanjut.",
-        "source_url":  "https://www.kemkes.go.id/id/layanan/panduan-tatalaksana-demam",
-        "reviewed_by":  null,
-        "reviewed_at":  null,
-        "rule_version":  "1.0.0",
-        "demo_only":  true,
-        "review_status":  "pending_clinical_review"
-    }
+  {
+    "rule_id": "RF-001",
+    "category": "cardiopulmonary_emergency",
+    "evidence_codes": ["E_14", "E_66"],
+    "condition": "Nyeri dada saat istirahat disertai sesak napas signifikan (DDXPlus E_14 + E_66)",
+    "severity": "urgent",
+    "message": "Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
+    "source_url": "https://www.kemkes.go.id/id/layanan/kegawatdaruratan-kardiovaskular",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "rule_version": "2.0.0",
+    "review_status": "pending_clinical_review"
+  },
+  {
+    "rule_id": "RF-002",
+    "category": "airway_obstruction",
+    "evidence_codes": ["E_128"],
+    "condition": "Sensasi tercekik dengan ketidakmampuan bernapas atau berbicara (DDXPlus E_128)",
+    "severity": "urgent",
+    "message": "Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
+    "source_url": "https://www.who.int/health-topics/emergency-care",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "rule_version": "2.0.0",
+    "review_status": "pending_clinical_review"
+  },
+  {
+    "rule_id": "RF-003",
+    "category": "hemoptysis_evaluation",
+    "evidence_codes": ["E_45"],
+    "condition": "Batuk berdarah yang memerlukan evaluasi medis segera (DDXPlus E_45)",
+    "severity": "review_recommended",
+    "message": "Keluhan batuk berdarah perlu segera dievaluasi oleh dokter atau fasilitas kesehatan.",
+    "source_url": "https://www.who.int/health-topics/respiratory-tract-diseases",
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "rule_version": "2.0.0",
+    "review_status": "pending_clinical_review"
+  }
 ]

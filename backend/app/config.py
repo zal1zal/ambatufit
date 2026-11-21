@@ -1,6 +1,10 @@
 import os
-from typing import List, Optional
+from pathlib import Path
+from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+RULES_DIR = BACKEND_DIR / "rules"
 
 
 def find_env_file() -> str:
@@ -53,7 +57,28 @@ class Settings(BaseSettings):
     
     # Partner API Keys for server-to-server calls to AmbatuFit
     # Format: "provider_id:api_key,provider_id2:api_key2"
-    PARTNER_API_KEYS: str = "ambatunoutrish:noutrish-sec-key-123,ambatomove:move-sec-key-456"
+    PARTNER_API_KEYS: str = "ambatunoutrish:noutrish-sec-key-123,ambatumove:move-sec-key-456"
+
+    # Pretrained LLM Runtime Configuration (Section 4.1 & 9 - Off-STB)
+    LLM_PROVIDER: str = ""
+    LLM_BASE_URL: str = ""
+    LLM_API_KEY: str = ""
+    LLM_MODEL: str = ""
+    LLM_TIMEOUT_SECONDS: float = 20.0
+    LLM_TEMPERATURE: float = 0.3
+    LLM_TOP_P: float = 0.9
+    LLM_TOP_K: int = 40
+    LLM_MAX_TOKENS: int = 768
+    LLM_REPETITION_PENALTY: float = 1.08
+    LLM_STOP_SEQUENCES: str = ""
+
+    # RAG Embedding & Knowledge Registry Settings
+    EMBEDDING_PROVIDER: str = "local_lsa"
+    EMBEDDING_MODEL: str = "local-multilingual-charword-lsa-v1"
+    SATUSEHAT_CLIENT_ID: str = ""
+    SATUSEHAT_CLIENT_SECRET: str = ""
+    WHO_ICD_CLIENT_ID: str = ""
+    WHO_ICD_CLIENT_SECRET: str = ""
 
     model_config = SettingsConfigDict(
         env_file=find_env_file(),

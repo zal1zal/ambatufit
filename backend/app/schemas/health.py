@@ -24,9 +24,13 @@ class EvidenceCatalogItem(BaseModel):
     evidence_code: str
     label_id: str
     question_id: str
+    code_question: Optional[str] = None
+    is_antecedent: bool = False
     value_type: Literal['boolean', 'categorical', 'multichoice']
     options: Optional[List[EvidenceCatalogOption]] = None
-    demo_only: bool = True
+    default_value: Optional[Any] = None
+    required: bool = False
+    demo_only: bool = False
 
 
 class EvidenceEntry(BaseModel):

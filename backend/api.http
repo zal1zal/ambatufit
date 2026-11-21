@@ -60,7 +60,7 @@ Content-Type: application/json
 GET {{baseUrl}}/api/v1/assessments/evidences
 Accept: application/json
 
-### 9. Kirim Penilaian Gejala (Normal - AI Inference)
+### 9. Kirim Penilaian Gejala (Normal - Official DDXPlus Evidence Codes)
 # @name assessmentNormal
 POST {{baseUrl}}/api/v1/assessments
 Authorization: Bearer {{authToken}}
@@ -69,19 +69,19 @@ Content-Type: application/json
 {
   "evidence_entries": [
     {
-      "evidence_code": "E_JOINT_OR_MUSCLE_PAIN",
+      "evidence_code": "E_201",
       "value": true
     },
     {
-      "evidence_code": "E_FATIGUE",
+      "evidence_code": "E_91",
       "value": true
     }
   ],
   "duration_days": 2,
-  "notes": "Nyeri lutut setelah berolahraga pagi."
+  "notes": "Batuk disertai demam ringan."
 }
 
-### 10. Kirim Penilaian Gejala (Urgent Red-Flag Screening)
+### 10. Kirim Penilaian Gejala (Indikator Bahaya - Official DDXPlus E_14 + E_66)
 POST {{baseUrl}}/api/v1/assessments
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
@@ -89,16 +89,16 @@ Content-Type: application/json
 {
   "evidence_entries": [
     {
-      "evidence_code": "E_SEVERE_CHEST_PAIN",
+      "evidence_code": "E_14",
       "value": true
     },
     {
-      "evidence_code": "E_SHORTNESS_OF_BREATH",
+      "evidence_code": "E_66",
       "value": true
     }
   ],
   "duration_days": 1,
-  "notes": "Nyeri dada hebat dan sesak mendadak."
+  "notes": "Nyeri dada saat istirahat disertai sesak napas signifikan."
 }
 
 ### 11. Riwayat Penilaian Gejala
@@ -145,7 +145,20 @@ Content-Type: application/json
 GET {{baseUrl}}/api/v1/bookings
 Authorization: Bearer {{authToken}}
 
-### 19. Partner API: Konsumsi Direktori oleh AmbatuNoutrish / ambatomove
+### 19. Partner API: Konsumsi Direktori oleh AmbatuNoutrish / AmbatuMove (ambatumove)
 GET {{baseUrl}}/api/v1/partner/professionals?specialty=dietitian
 X-API-Key: noutrish-sec-key-123
+
+### 20. Katalog Informasi Obat Bebas & Obat Bebas Terbatas (Edukatif)
+GET {{baseUrl}}/api/v1/medications?limit=20&offset=0
+Authorization: Bearer {{authToken}}
+
+### 21. Detail Informasi & Keamanan Obat Terverifikasi
+GET {{baseUrl}}/api/v1/medications/opaque-reviewed-entry-id
+Authorization: Bearer {{authToken}}
+
+### 22. Informasi Obat Terkait Penilaian Gejala (Rule-Based & Safety-Gated)
+GET {{baseUrl}}/api/v1/assessments/{{assessmentNormal.response.body.id}}/medication-information
+Authorization: Bearer {{authToken}}
+
 

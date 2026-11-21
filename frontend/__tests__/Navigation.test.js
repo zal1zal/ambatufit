@@ -4,4 +4,6 @@ test('has exactly the five required tab IDs', () =>
 test('detail IDs are declared', () => {
   expect(STACK_ROUTES.every((x) => ROUTES[x] === x)).toBe(true);
   expect(STACK_ROUTES).toContain('Booking');
+  expect(STACK_ROUTES).toContain('Medications');
+  expect(STACK_ROUTES).toContain('MedicationDetail');
 });

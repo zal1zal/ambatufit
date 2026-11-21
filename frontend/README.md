@@ -82,9 +82,9 @@ Gunakan hanya pada database demo lokal yang dibuat oleh tim. Jangan gunakan kred
 
 ## Navigasi
 
-Tab: `Home`, `SymptomAssessment`, `Guidance`, `Progress`, `Profile`. Login: `Login`. Detail dibuka melalui stack: `AssessmentResult`, `AssessmentHistory`, `HealthProfileEdit`, `Nutrition`, `Gyms`, `Professionals`, `ProfessionalDetail`, `Booking`, dan `MyBookings`.
+Tab: `Home`, `SymptomAssessment`, `Guidance`, `Progress`, `Profile`. Login: `Login`. Detail dibuka melalui stack: `AssessmentResult`, `AssessmentHistory`, `Medications`, `MedicationDetail`, `HealthProfileEdit`, `Nutrition`, `Gyms`, `Professionals`, `ProfessionalDetail`, `Booking`, dan `MyBookings`.
 
-Semua HTTP dikirim lewat `src/services/ApiService.js`. Kontrak OpenAPI lokal ada di `src/contracts/`; perbarui secara eksplisit setelah mengubah backend. Backend development memakai evidence dan data profesional sintetis. Mitra berstatus `not_configured` sampai API, URL dan kredensial partner benar-benar dikonfigurasi. AI dapat tampil tidak tersedia bila model eksternal belum disiapkan.
+Semua HTTP dikirim lewat `src/services/ApiService.js`. Kontrak OpenAPI lokal ada di `src/contracts/`; perbarui secara eksplisit setelah mengubah backend (`node scripts/sync-contracts.js ../backend/contracts`). Pertanyaan gejala dimuat dari katalog DDXPlus resmi (`GET /api/v1/assessments/evidences`); katalog informasi obat dan aturan *red-flag* bawaan masih menunggu peninjauan klinis sehingga default menampilkan `unavailable` secara jujur. Mitra (`AmbatuNoutrish` & `AmbatuMove` / `ambatumove`) berstatus `not_configured` sampai kontrak dan kredensial partner benar-benar dikonfigurasi. AI dapat tampil `unavailable` / `not_configured` bila layanan inferensi eksternal belum aktif.
 
 ## Build APK Android
 

@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "pending_clinical_review",
+  "note": "Populate only pharmacist/clinician-reviewed obat_bebas and obat_bebas_terbatas entries with verifiable reference URLs and timestamps. Entries not marked review_status='reviewed' are automatically excluded.",
+  "items": []
+}
+

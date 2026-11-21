@@ -1,114 +1,95 @@
-from typing import List, Dict, Any, Optional
+"""Official DDXPlus evidence catalog loader for Personal Health Intelligence Context."""
+from functools import lru_cache
+import json
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+from app.config import RULES_DIR
 from app.schemas.health import EvidenceCatalogItem, EvidenceCatalogOption
 
-# Synthetic questionnaire codes for coursework only, NOT verified DDXPlus IDs.
-# Replace with actual reviewed release metadata before enabling model-backed use.
-CATALOG_ITEMS: List[EvidenceCatalogItem] = [
-    EvidenceCatalogItem(
-        evidence_code="E_SEVERE_CHEST_PAIN",
-        label_id="Nyeri Dada Hebat",
-        question_id="Apakah Anda merasakan nyeri atau sensasi tertekan yang kuat di dada?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_SHORTNESS_OF_BREATH",
-        label_id="Sesak Napas",
-        question_id="Apakah Anda mengalami kesulitan bernapas atau sesak napas saat istirahat?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_SUDDEN_NUMBNESS",
-        label_id="Mati Rasa Mendadak",
-        question_id="Apakah ada anggota tubuh (wajah, lengan, kaki) yang terasa lemas atau mati rasa tiba-tiba?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_SLURRED_SPEECH",
-        label_id="Bicara Cadal / Pelo",
-        question_id="Apakah Anda atau orang lain menyadari kesulitan berbicara atau ucapan tidak jelas?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_HIGH_FEVER",
-        label_id="Demam Tinggi",
-        question_id="Apakah suhu tubuh Anda terukur sangat tinggi (di atas 39°C) atau terasa sangat panas?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_STIFF_NECK",
-        label_id="Kaku Kuduk",
-        question_id="Apakah leher terasa kaku dan sulit/sakit saat dagu ditekuk ke arah dada?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_SEVERE_ALLERGIC_REACTION",
-        label_id="Reaksi Alergi Berat",
-        question_id="Apakah muncul bentol-bentol kemerahan luas dan rasa terbakar pada kulit?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_THROAT_TIGHTNESS",
-        label_id="Tenggorokan Menyempit",
-        question_id="Apakah tenggorokan terasa tersumbat atau sulit menelan ludah/bernapas?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_PERSISTENT_FEVER_OVER_3_DAYS",
-        label_id="Demam Lebih Dari 3 Hari",
-        question_id="Apakah demam sudah berlangsung terus-menerus selama lebih dari 3 hari?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_COUGH",
-        label_id="Batuk",
-        question_id="Apakah Anda mengalami batuk?",
-        value_type="categorical",
-        options=[
-            EvidenceCatalogOption(value="dry", label_id="Batuk Kering"),
-            EvidenceCatalogOption(value="productive", label_id="Batuk Berdahak"),
-            EvidenceCatalogOption(value="none", label_id="Tidak Batuk"),
-        ],
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_JOINT_OR_MUSCLE_PAIN",
-        label_id="Nyeri Sendi atau Otot",
-        question_id="Apakah Anda merasakan nyeri pada persendian atau otot (misal setelah berolahraga)?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_FATIGUE",
-        label_id="Kelelahan / Rasa Lemah",
-        question_id="Apakah Anda merasa sangat lelah dan tidak bertenaga sepanjang hari?",
-        value_type="boolean",
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_HEADACHE",
-        label_id="Sakit Kepala",
-        question_id="Apakah Anda merasakan sakit kepala berdenyut atau tegang?",
-        value_type="categorical",
-        options=[
-            EvidenceCatalogOption(value="mild", label_id="Ringan"),
-            EvidenceCatalogOption(value="moderate", label_id="Sedang"),
-            EvidenceCatalogOption(value="severe", label_id="Berat"),
-            EvidenceCatalogOption(value="none", label_id="Tidak Sakit"),
-        ],
-    ),
-    EvidenceCatalogItem(
-        evidence_code="E_NAUSEA",
-        label_id="Mual / Gangguan Pencernaan",
-        question_id="Apakah Anda merasa mual atau perut terasa tidak nyaman?",
-        value_type="boolean",
-    ),
-]
+DDXPLUS_EVIDENCE_FILE = RULES_DIR / "ddxplus_evidences.json"
+TYPE_MAP = {"B": "boolean", "C": "categorical", "M": "multichoice"}
 
 
-def get_catalog_items() -> List[EvidenceCatalogItem]:
-    from app.config import settings
-    if settings.APP_ENV not in ('development', 'test'):
-        return []
-    return CATALOG_ITEMS
+def _build_options(spec: dict) -> Optional[List[EvidenceCatalogOption]]:
+    if spec.get("data_type") == "B":
+        return None
+    meanings = spec.get("value_meaning") or {}
+    options: List[EvidenceCatalogOption] = []
+    for raw_val in spec.get("possible-values", []):
+        key = str(raw_val)
+        meaning = meanings.get(key)
+        label = (
+            meaning.get("id") or meaning.get("en")
+            if isinstance(meaning, dict)
+            else None
+        ) or key
+        options.append(EvidenceCatalogOption(value=raw_val, label_id=label))
+    return options
+
+
+@lru_cache(maxsize=1)
+def _load_catalog_with_aliases(
+    path: Path = DDXPLUS_EVIDENCE_FILE,
+) -> Tuple[List[EvidenceCatalogItem], Dict[str, str]]:
+    if not path.exists():
+        return [], {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    raw = payload.get("evidences", payload) if isinstance(payload, dict) else {}
+    items: List[EvidenceCatalogItem] = []
+    search_aliases: Dict[str, str] = {}
+
+    for code in sorted(raw):
+        spec = raw[code]
+        value_type = TYPE_MAP.get(spec.get("data_type"))
+        if not value_type:
+            continue
+        question_id = (spec.get("question_id") or spec.get("question_en") or "").strip()
+        if not question_id:
+            continue
+        options = _build_options(spec)
+        items.append(
+            EvidenceCatalogItem(
+                evidence_code=code,
+                label_id=question_id,
+                question_id=question_id,
+                code_question=spec.get("code_question"),
+                is_antecedent=bool(spec.get("is_antecedent", False)),
+                value_type=value_type,
+                options=options,
+                default_value=spec.get("default_value"),
+                required=False,
+                demo_only=False,
+            )
+        )
+        en_q = (spec.get("question_en") or "").lower()
+        opt_texts = " ".join(
+            f"{o.label_id} {o.value}" for o in (options or [])
+        ).lower()
+        en_meanings = " ".join(
+            str(m.get("en", ""))
+            for m in (spec.get("value_meaning") or {}).values()
+            if isinstance(m, dict)
+        ).lower()
+        search_aliases[code] = f"{code.lower()} {question_id.lower()} {en_q} {opt_texts} {en_meanings}"
+
+    # Order primary symptom questions first, followed by medical history (antecedents)
+    items.sort(key=lambda it: (it.is_antecedent, it.code_question != it.evidence_code, it.evidence_code))
+    return items, search_aliases
+
+
+def get_catalog_items(
+    *, query: Optional[str] = None, is_antecedent: Optional[bool] = None
+) -> List[EvidenceCatalogItem]:
+    items, aliases = _load_catalog_with_aliases()
+    if is_antecedent is not None:
+        items = [it for it in items if it.is_antecedent is is_antecedent]
+    if query:
+        q = query.strip().lower()
+        items = [it for it in items if q in aliases.get(it.evidence_code, "")]
+    return items
 
 
 def get_catalog_dict() -> Dict[str, EvidenceCatalogItem]:
-    return {item.evidence_code: item for item in get_catalog_items()}
-
+    items, _ = _load_catalog_with_aliases()
+    return {item.evidence_code: item for item in items}

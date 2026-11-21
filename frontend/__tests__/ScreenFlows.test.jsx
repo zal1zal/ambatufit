@@ -4,6 +4,7 @@ import {
   LoginScreen,
   AssessmentResultScreen,
   BookingScreen,
+  ProfessionalDetailScreen,
   ProgressScreen,
 } from '../src/screens/AppScreens';
 import { ApiService } from '../src/services/ApiService';
@@ -13,6 +14,7 @@ jest.mock('../src/services/ApiService', () => ({
     assessments: { get: jest.fn() },
     monitoring: { list: jest.fn(), create: jest.fn() },
     bookings: { create: jest.fn() },
+    professionals: { slots: jest.fn() },
     consents: { grantAssessmentSharing: jest.fn() },
   },
 }));
@@ -73,4 +75,24 @@ test('progress rejects an empty note without posting', async () => {
   expect(v.getByText('Masukkan catatan singkat sebelum menyimpan.')).toBeTruthy();
   expect(ApiService.monitoring.create).not.toHaveBeenCalled();
   await waitFor(() => expect(v.queryByText('Memuat informasi')).toBeNull());
+});
+
+test('ProfessionalDetailScreen renders consultation slots as selectable date grid cards', async () => {
+  ApiService.professionals.slots.mockResolvedValue({
+    items: [
+      { id: 'slot-1', starts_at: '2026-11-23T09:00:00', ends_at: '2026-11-23T10:00:00', is_available: true },
+      { id: 'slot-2', starts_at: '2026-11-24T14:00:00', ends_at: '2026-11-24T15:00:00', is_available: true },
+    ],
+  });
+  const v = render(
+    <ProfessionalDetailScreen
+      navigation={navigation}
+      route={{ name: 'ProfessionalDetail', params: { professional_id: 'pro-doc-001' } }}
+    />,
+  );
+  await waitFor(() => expect(v.getByText('23 Nov 2026')).toBeTruthy());
+  expect(v.getByText('24 Nov 2026')).toBeTruthy();
+  expect(v.getByText('09.00 – 10.00 WIB')).toBeTruthy();
+  fireEvent.press(v.getByText('23 Nov 2026'));
+  expect(v.getByText('✓ Dipilih')).toBeTruthy();
 });

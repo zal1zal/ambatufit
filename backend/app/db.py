@@ -1,7 +1,7 @@
 import json
 import os
-from datetime import datetime
-from typing import Any, List, Optional
+from datetime import datetime, timezone
+from typing import List
 from sqlalchemy import (
     create_engine,
     Column,
@@ -11,10 +11,13 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Text,
-    UniqueConstraint,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from app.config import settings
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # Ensure sqlite directory exists
 if settings.DATABASE_URL.startswith("sqlite:///"):
@@ -145,10 +148,43 @@ class GuidanceSnapshot(Base):
 
     id = Column(String(64), primary_key=True, index=True)
     user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
-    generated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    generated_at = Column(DateTime, default=utc_now, nullable=False)
     rule_version = Column(String(32), default="1.0.0", nullable=False)
     items_json = Column(Text, nullable=False)
     provider_status_json = Column(Text, nullable=False)
+
+
+class MedicationCatalogItem(Base):
+    __tablename__ = "medication_catalog_items"
+
+    id = Column(String(64), primary_key=True, index=True)
+    display_name = Column(String(128), nullable=False)
+    active_ingredient = Column(String(128), nullable=False)
+    category = Column(String(32), nullable=False)  # obat_bebas | obat_bebas_terbatas
+    general_indications_json = Column(Text, default="[]", nullable=False)
+    warnings_json = Column(Text, default="[]", nullable=False)
+    contraindications_json = Column(Text, default="[]", nullable=False)
+    source_reference_id = Column(String(128), nullable=False)
+    source_title = Column(String(255), nullable=False)
+    source_url = Column(String(512), nullable=False)
+    verified_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    review_status = Column(String(32), default="pending_review", nullable=False)
+    review_version = Column(String(32), default="1.0.0", nullable=False)
+
+
+class MedicationInformationMapping(Base):
+    __tablename__ = "medication_information_mappings"
+
+    id = Column(String(64), primary_key=True, index=True)
+    indication_key = Column(String(64), index=True, nullable=False)
+    evidence_codes_json = Column(Text, default="[]", nullable=False)
+    medication_id = Column(String(64), ForeignKey("medication_catalog_items.id"), index=True, nullable=False)
+    rule_id = Column(String(64), nullable=False)
+    source_reference_id = Column(String(128), nullable=False)
+    review_status = Column(String(32), default="pending_review", nullable=False)
+    review_version = Column(String(32), default="1.0.0", nullable=False)
+    expires_at = Column(DateTime, nullable=True)
 
 
 class Professional(Base):
@@ -205,6 +241,60 @@ class AssessmentShareConsent(Base):
     granted_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=True)
     revoked_at = Column(DateTime, nullable=True)
+
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    title = Column(String(160), nullable=False)
+    active_topic = Column(String(160), nullable=True)
+    summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    messages = relationship("ConversationMessage", back_populates="conversation", cascade="all, delete-orphan")
+
+
+class ConversationMessage(Base):
+    __tablename__ = "conversation_messages"
+
+    id = Column(String(64), primary_key=True, index=True)
+    conversation_id = Column(String(64), ForeignKey("conversations.id"), index=True, nullable=False)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    role = Column(String(24), nullable=False)
+    content = Column(Text, nullable=False)
+    intent = Column(String(64), nullable=True)
+    citations_json = Column(Text, default="[]", nullable=False)
+    safety_alert = Column(Boolean, default=False, nullable=False)
+    generation_mode = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+
+    conversation = relationship("Conversation", back_populates="messages")
+
+
+class PersonalizedPlan(Base):
+    __tablename__ = "personalized_plans"
+
+    id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    version = Column(Integer, default=1, nullable=False)
+    parent_plan_id = Column(String(64), nullable=True)
+    status = Column(String(32), default="draft", nullable=False)  # draft | active | completed | needs_review | archived
+    goal = Column(String(64), nullable=False)
+    profile_snapshot_json = Column(Text, default="{}", nullable=False)
+    safety_level = Column(String(32), default="none", nullable=False)
+    safety_notes_json = Column(Text, default="[]", nullable=False)
+    habits_json = Column(Text, default="[]", nullable=False)
+    nutrition_section_json = Column(Text, default="{}", nullable=False)
+    activity_section_json = Column(Text, default="{}", nullable=False)
+    monitoring_guidance_json = Column(Text, default="[]", nullable=False)
+    rag_citations_json = Column(Text, default="[]", nullable=False)
+    clarification_questions_json = Column(Text, default="[]", nullable=False)
+    revision_reason = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
 
 def get_db():

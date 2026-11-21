@@ -1,0 +1,74 @@
+{
+  "model_version": "ddxplus-lr-en-v2.0",
+  "algorithm": "Multiclass LogisticRegression (scikit-learn)",
+  "trained_at": "2026-11-21T16:39:11.771839Z",
+  "schema_hash": "15edcb004eb6701a",
+  "n_features": 977,
+  "n_classes": 49,
+  "dataset": {
+    "name": "DDXPlus Dataset (English)",
+    "doi": "10.6084/m9.figshare.22687585.v2",
+    "url": "https://doi.org/10.6084/m9.figshare.22687585",
+    "license": "CC BY 4.0",
+    "paper": "Fansi Tchango et al., NeurIPS 2022 (DDXPlus)",
+    "train_rows": 1025602,
+    "validate_rows": 132448,
+    "files_md5": {
+      "release_evidences.json": "0660962abe0bbf99e1fb77188c253597",
+      "release_test_patients.zip": "6fd53d331cf19ed4439bf4f46b92ee94",
+      "release_train_patients.zip": "f75a78420ccb061951daa4db2d62139b",
+      "release_validate_patients.zip": "e4db88e9082f18410de6fd0cb7e74d18",
+      "release_conditions.json": "a992eadcff3099dd72e1820fbd2115aa"
+    },
+    "test_rows": 134529
+  },
+  "training_params": {
+    "selected_C": 1.0,
+    "selected_class_weight": null,
+    "solver": "lbfgs",
+    "max_iter": 200,
+    "tol": 0.0001,
+    "random_state": 42,
+    "validation_trials": [
+      {
+        "C": 1.0,
+        "class_weight": null,
+        "val_macro_f1": 0.996383,
+        "val_top1_accuracy": 0.996995,
+        "val_top3_accuracy": 1.0,
+        "val_top5_accuracy": 1.0,
+        "n_iter": 26,
+        "fit_seconds": 70.72
+      },
+      {
+        "C": 1.0,
+        "class_weight": "balanced",
+        "val_macro_f1": 0.996214,
+        "val_top1_accuracy": 0.997055,
+        "val_top3_accuracy": 1.0,
+        "val_top5_accuracy": 1.0,
+        "n_iter": 25,
+        "fit_seconds": 75.99
+      }
+    ]
+  },
+  "environment": {
+    "python_version": "3.12.10",
+    "scikit_learn_version": "1.9.1",
+    "numpy_version": "2.5.5",
+    "scipy_version": "1.18.1",
+    "joblib_version": "1.6.0"
+  },
+  "clinical_validity_notice": "Trained on synthetic DDXPlus benchmark data. Performance does NOT establish clinical validity on real patients and model outputs are never clinical diagnoses or prescriptions.",
+  "test_evaluation": {
+    "evaluated_at": "2026-11-21T16:39:26.224269Z",
+    "test_samples": 134529,
+    "macro_f1": 0.99678,
+    "weighted_f1": 0.99732,
+    "top_k_accuracy": {
+      "top_1": 0.997354,
+      "top_3": 1.0,
+      "top_5": 1.0
+    }
+  }
+}

@@ -23,7 +23,7 @@ class Gym(BaseModel):
     facilities: list[str] = Field(default_factory=list)
     opening_hours: str | None = None
     class_schedule: list[str] = Field(default_factory=list)
-    provider_id: Literal['ambatomove'] = 'ambatomove'
+    provider_id: Literal['ambatumove'] = 'ambatumove'
 
 
 class FoodList(BaseModel):

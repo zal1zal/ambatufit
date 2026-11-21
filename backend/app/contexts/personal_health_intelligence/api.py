@@ -1,5 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.db import get_db, User
@@ -42,8 +43,11 @@ def update_user_profile(
 
 
 @router.get("/assessments/evidences", response_model=PaginatedResponse[EvidenceCatalogItem])
-def get_evidence_catalog():
-    items = get_catalog_items()
+def get_evidence_catalog(
+    query: Optional[str] = Query(None, max_length=120),
+    is_antecedent: Optional[bool] = Query(None),
+):
+    items = get_catalog_items(query=query, is_antecedent=is_antecedent)
     return PaginatedResponse(items=items, total=len(items))
 
 
@@ -131,4 +135,37 @@ async def get_capabilities(
 ):
     service = HealthService(db)
     return await service.get_system_capabilities()
+
+
+class AnalyzeTextBody(BaseModel):
+    text: str = Field(min_length=2, max_length=2000)
+    ensure_non_empty: bool = True
+
+
+class GuidanceAskBody(BaseModel):
+    query: str = Field(min_length=2, max_length=1500)
+
+
+@router.post("/assessments/analyze-text", include_in_schema=False)
+async def analyze_complaint_text(
+    body: AnalyzeTextBody,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    service = HealthService(db)
+    return await service.analyze_free_text(
+        current_user.id,
+        text=body.text,
+        ensure_non_empty=body.ensure_non_empty,
+    )
+
+
+@router.post("/guidance/ask", include_in_schema=False)
+async def ask_personalized_guidance(
+    body: GuidanceAskBody,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    service = HealthService(db)
+    return await service.ask_personalized_rag(current_user.id, body.query)
 

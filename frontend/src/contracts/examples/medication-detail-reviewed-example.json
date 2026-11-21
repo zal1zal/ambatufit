@@ -1,0 +1,16 @@
+{
+  "id": "opaque-reviewed-entry-id",
+  "display_name": "Display label from reviewed source (synthetic example)",
+  "active_ingredient": "Verified active ingredient (synthetic example)",
+  "category": "obat_bebas",
+  "general_indications": [],
+  "warnings": [],
+  "contraindications": [],
+  "source": {
+    "reference_id": "verified-reference-id",
+    "title": "Verified source title (contract example)",
+    "url": "https://example.invalid/reviewed-source-required",
+    "verified_at": "2026-11-20T09:00:00Z"
+  },
+  "disclaimer": "Informasi obat ini bersifat edukatif dan bukan resep atau rekomendasi pengobatan individual."
+}

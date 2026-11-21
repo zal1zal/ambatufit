@@ -430,9 +430,9 @@
           },
           "provider_id": {
             "type": "string",
-            "const": "ambatomove",
+            "const": "ambatumove",
             "title": "Provider Id",
-            "default": "ambatomove"
+            "default": "ambatumove"
           }
         },
         "type": "object",

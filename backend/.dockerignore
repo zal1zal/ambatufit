@@ -1,11 +1,14 @@
 ai/
 integration/
 var/
+data/
 *.db
 *.sqlite
+*.joblib
 *.pyc
 __pycache__/
 venv/
+.venv/
 .env
 models/
 artifacts/

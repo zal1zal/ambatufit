@@ -70,6 +70,27 @@
     },
     {
         "service":  "core",
+        "path":  "/api/v1/medications",
+        "method":  "get",
+        "responseSchema":  "medicationInformationSchema",
+        "responseFixture":  "medications-list-unavailable.json"
+    },
+    {
+        "service":  "core",
+        "path":  "/api/v1/medications/{id}",
+        "method":  "get",
+        "responseSchema":  "medicationDetailSchema",
+        "responseFixture":  "medication-detail-reviewed-example.json"
+    },
+    {
+        "service":  "core",
+        "path":  "/api/v1/assessments/{id}/medication-information",
+        "method":  "get",
+        "responseSchema":  "medicationInformationSchema",
+        "responseFixture":  "assessment-medication-restricted.json"
+    },
+    {
+        "service":  "core",
         "path":  "/api/v1/monitoring/entries",
         "method":  "post",
         "requestSchema":  "monitoringInputSchema",

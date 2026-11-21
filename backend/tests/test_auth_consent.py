@@ -60,7 +60,7 @@ def test_b13_b14_assessment_sharing_consent_and_revocation(client, db_session, d
         "/api/v1/assessments",
         headers={"Authorization": f"Bearer {demo_user_token}"},
         json={
-            "evidence_entries": [{"evidence_code": "E_FATIGUE", "value": True}],
+            "evidence_entries": [{"evidence_code": "E_89", "value": True}],
             "duration_days": 1,
             "notes": "Keluhan ringan",
         },

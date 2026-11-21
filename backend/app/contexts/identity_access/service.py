@@ -66,7 +66,7 @@ def verify_partner_api_key(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="API Key partner tidak valid atau tidak memiliki akses.",
         )
-    return partner_map[api_key]  # returns provider_id e.g. "ambatunoutrish" or "ambatomove"
+    return partner_map[api_key]  # returns provider_id e.g. "ambatunoutrish" or "ambatumove"
 
 
 class IdentityService:

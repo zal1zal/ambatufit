@@ -1,37 +1,101 @@
+====================================================================
+AmbatuFit Official DDXPlus ML Evaluation Report
+====================================================================
+Model Version:      ddxplus-lr-en-v2.0
+Algorithm:          Multiclass Logistic Regression (scikit-learn)
+Dataset Source:     Official DDXPlus English (DOI: 10.6084/m9.figshare.22687585.v2, CC BY 4.0)
+Evaluation Split:   release_test_patients.zip (untouched test split)
+Total Test Samples: 134,529
+Total Classes:      49
+Macro F1-Score:     0.9968
+Weighted F1-Score:  0.9973
+Top-1 Accuracy:     0.9974 (k=1)
+Top-3 Accuracy:     1.0000 (k=3)
+Top-5 Accuracy:     1.0000 (k=5)
 
-======================================================
-AmbatuFit ML Evaluation Report (DDXPlus Baseline)
-======================================================
-Model Architecture: Multiclass Logistic Regression
-Total Test Samples: 500
-Accuracy (Top-1):   0.5460
-Top-3 Accuracy:     0.6900
-Macro F1-Score:     0.4326
+5 Smallest Support (Minority) Classes:
+  - Bronchiolitis (support=36): F1=1.0000, P=1.0000, R=1.0000
+  - Ebola (support=100): F1=1.0000, P=1.0000, R=1.0000
+  - Croup (support=344): F1=0.9985, P=1.0000, R=0.9971
+  - Whooping cough (support=549): F1=1.0000, P=1.0000, R=1.0000
+  - Spontaneous rib fracture (support=778): F1=1.0000, P=1.0000, R=1.0000
 
-Classification Report:
-                                   precision    recall  f1-score   support
+5 Lowest F1 Classes:
+  - Acute rhinosinusitis (support=1,829): F1=0.9174, P=0.9968, R=0.8496
+  - Chronic rhinosinusitis (support=2,747): F1=0.9514, P=0.9088, R=0.9982
+  - Stable angina (support=2,386): F1=0.9900, P=0.9803, R=1.0000
+  - Unstable angina (support=2,880): F1=0.9912, P=1.0000, R=0.9826
+  - Acute laryngitis (support=3,217): F1=0.9961, P=0.9953, R=0.9969
 
-  Gastroesophageal Reflux Disease     0.5412    0.6133    0.5750        75
-Upper Respiratory Tract Infection     0.6604    0.7527    0.7035        93
-            Tension-Type Headache     0.7733    0.5859    0.6667        99
-          Muscle Strain / Myalgia     0.7658    0.7143    0.7391       119
-                Allergic Rhinitis     0.1364    0.0652    0.0882        46
-                 Acute Bronchitis     0.1045    0.2258    0.1429        31
-                  Acute Gastritis     0.1176    0.1081    0.1127        37
+Top 10 Confusion Pairs (True -> Predicted):
+  - Acute rhinosinusitis -> Chronic rhinosinusitis: 275
+  - Unstable angina -> Stable angina: 48
+  - Viral pharyngitis -> Acute laryngitis: 15
+  - Acute laryngitis -> Viral pharyngitis: 10
+  - Chronic rhinosinusitis -> Acute rhinosinusitis: 5
+  - Unstable angina -> Possible NSTEMI / STEMI: 2
+  - Croup -> Larygospasm: 1
 
-                         accuracy                         0.5460       500
-                        macro avg     0.4427    0.4379    0.4326       500
-                     weighted avg     0.5671    0.5460    0.5503       500
+Full Per-Class Classification Report:
+                                          precision    recall  f1-score   support
 
+     Acute COPD exacerbation / infection     1.0000    1.0000    1.0000      2153
+                Acute dystonic reactions     1.0000    1.0000    1.0000      3302
+                        Acute laryngitis     0.9953    0.9969    0.9961      3217
+                      Acute otitis media     1.0000    1.0000    1.0000      3516
+                   Acute pulmonary edema     1.0000    1.0000    1.0000      2598
+                    Acute rhinosinusitis     0.9968    0.8496    0.9174      1829
+                      Allergic sinusitis     1.0000    1.0000    1.0000      2411
+                             Anaphylaxis     1.0000    1.0000    1.0000      3799
+                                  Anemia     1.0000    1.0000    1.0000      6842
+                     Atrial fibrillation     1.0000    1.0000    1.0000      2831
+                               Boerhaave     1.0000    1.0000    1.0000      2083
+                          Bronchiectasis     1.0000    1.0000    1.0000      2454
+                           Bronchiolitis     1.0000    1.0000    1.0000        36
+                              Bronchitis     1.0000    1.0000    1.0000      3594
+Bronchospasm / acute asthma exacerbation     1.0000    1.0000    1.0000      2222
+                                  Chagas     1.0000    1.0000    1.0000      1077
+                  Chronic rhinosinusitis     0.9088    0.9982    0.9514      2747
+                        Cluster headache     1.0000    1.0000    1.0000      2825
+                                   Croup     1.0000    0.9971    0.9985       344
+                                   Ebola     1.0000    1.0000    1.0000       100
+                            Epiglottitis     1.0000    1.0000    1.0000      2364
+                                    GERD     1.0000    1.0000    1.0000      3543
+                 Guillain-Barré syndrome     1.0000    1.0000    1.0000      2601
+                 HIV (initial infection)     1.0000    1.0000    1.0000      3919
+                               Influenza     1.0000    1.0000    1.0000      3554
+                         Inguinal hernia     1.0000    1.0000    1.0000      2751
+                             Larygospasm     0.9987    1.0000    0.9994       785
+                         Localized edema     1.0000    1.0000    1.0000      3734
+                       Myasthenia gravis     1.0000    1.0000    1.0000      2215
+                             Myocarditis     1.0000    1.0000    1.0000      1478
+                                    PSVT     1.0000    1.0000    1.0000      2443
+                     Pancreatic neoplasm     1.0000    1.0000    1.0000      2585
+                            Panic attack     1.0000    1.0000    1.0000      3387
+                            Pericarditis     1.0000    1.0000    1.0000      3095
+                               Pneumonia     1.0000    1.0000    1.0000      3542
+                 Possible NSTEMI / STEMI     0.9993    1.0000    0.9997      2911
+                      Pulmonary embolism     1.0000    1.0000    1.0000      3679
+                      Pulmonary neoplasm     1.0000    1.0000    1.0000      1918
+                                     SLE     1.0000    1.0000    1.0000      1564
+                             Sarcoidosis     1.0000    1.0000    1.0000      2902
+                Scombroid food poisoning     1.0000    1.0000    1.0000      2486
+                Spontaneous pneumothorax     1.0000    1.0000    1.0000      1343
+                Spontaneous rib fracture     1.0000    1.0000    1.0000       778
+                           Stable angina     0.9803    1.0000    0.9900      2386
+                            Tuberculosis     1.0000    1.0000    1.0000      2080
+                                    URTI     1.0000    1.0000    1.0000      8743
+                         Unstable angina     1.0000    0.9826    0.9912      2880
+                       Viral pharyngitis     0.9988    0.9982    0.9985      8334
+                          Whooping cough     1.0000    1.0000    1.0000       549
 
-Confusion Matrix:
-[[46  2  4  5  5 10  3]
- [ 4 70  2  3  4  5  5]
- [ 7 12 58  2  1 14  5]
- [ 7  4  3 85  3 10  7]
- [ 6  7  4  5  3 12  9]
- [ 7  6  1  6  3  7  1]
- [ 8  5  3  5  3  9  4]]
-======================================================
-Important: This evaluation measures performance on synthetic benchmark data
-and does not establish clinical safety or validity on real patients.
+                                accuracy                         0.9974    134529
+                               macro avg     0.9975    0.9964    0.9968    134529
+                            weighted avg     0.9975    0.9974    0.9973    134529
+
+Confusion Matrix (49x49): saved in backend/ai/evaluation_metrics.json
+====================================================================
+Important: DDXPlus is a synthetic dataset. These metrics measure benchmark
+performance on simulated patients and do NOT prove clinical validity.
+Outputs are internal support signals only — never clinical diagnoses,
+red-flag overrides, or medication recommendations.
