@@ -1,3 +1,3 @@
 export const API_VERSION = 'v1';
 export const API_CONTRACT_SOURCE =
-  '04_FRONTEND_EXPO_IMPLEMENTATION_GUIDE.md and 02_BACKEND_STB_AND_AI_GUIDE.md';
+  'openapi.json and integration-openapi.json (copied from backend/contracts)';

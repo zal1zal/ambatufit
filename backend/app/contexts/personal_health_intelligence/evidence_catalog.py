@@ -1,8 +1,8 @@
 from typing import List, Dict, Any, Optional
 from app.schemas.health import EvidenceCatalogItem, EvidenceCatalogOption
 
-# Sourced from DDXPlus evidence metadata and medical symptom taxonomy
-# Contains structured symptoms, question mappings, and allowed data types
+# Synthetic questionnaire codes for coursework only, NOT verified DDXPlus IDs.
+# Replace with actual reviewed release metadata before enabling model-backed use.
 CATALOG_ITEMS: List[EvidenceCatalogItem] = [
     EvidenceCatalogItem(
         evidence_code="E_SEVERE_CHEST_PAIN",
@@ -103,9 +103,12 @@ CATALOG_ITEMS: List[EvidenceCatalogItem] = [
 
 
 def get_catalog_items() -> List[EvidenceCatalogItem]:
+    from app.config import settings
+    if settings.APP_ENV not in ('development', 'test'):
+        return []
     return CATALOG_ITEMS
 
 
 def get_catalog_dict() -> Dict[str, EvidenceCatalogItem]:
-    return {item.evidence_code: item for item in CATALOG_ITEMS}
+    return {item.evidence_code: item for item in get_catalog_items()}
 

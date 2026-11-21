@@ -987,6 +987,11 @@
           },
           "status": {
             "type": "string",
+            "enum": [
+              "completed",
+              "safety_alert",
+              "model_unavailable"
+            ],
             "title": "Status"
           },
           "created_at": {
@@ -1000,6 +1005,11 @@
           },
           "safety_level": {
             "type": "string",
+            "enum": [
+              "none",
+              "review_recommended",
+              "urgent"
+            ],
             "title": "Safety Level"
           }
         },
@@ -1020,6 +1030,8 @@
               "$ref": "#/components/schemas/EvidenceEntry"
             },
             "type": "array",
+            "maxItems": 200,
+            "minItems": 1,
             "title": "Evidence Entries"
           },
           "duration_days": {
@@ -1031,7 +1043,8 @@
           "notes": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -1054,6 +1067,11 @@
           },
           "status": {
             "type": "string",
+            "enum": [
+              "completed",
+              "safety_alert",
+              "model_unavailable"
+            ],
             "title": "Status"
           },
           "created_at": {
@@ -1164,6 +1182,40 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "professional_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Professional Name"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          },
+          "consent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Id"
           }
         },
         "type": "object",
@@ -1180,14 +1232,29 @@
         "properties": {
           "ai_inference": {
             "type": "string",
+            "enum": [
+              "available",
+              "unavailable",
+              "not_configured"
+            ],
             "title": "Ai Inference"
           },
           "nutrition_integration": {
             "type": "string",
+            "enum": [
+              "available",
+              "unavailable",
+              "not_configured"
+            ],
             "title": "Nutrition Integration"
           },
           "gym_integration": {
             "type": "string",
+            "enum": [
+              "available",
+              "unavailable",
+              "not_configured"
+            ],
             "title": "Gym Integration"
           }
         },
@@ -1215,8 +1282,8 @@
           },
           "grant": {
             "type": "boolean",
-            "title": "Grant",
-            "default": true
+            "const": true,
+            "title": "Grant"
           },
           "expires_at": {
             "anyOf": [
@@ -1235,7 +1302,8 @@
         "required": [
           "assessment_id",
           "professional_id",
-          "booking_id"
+          "booking_id",
+          "grant"
         ],
         "title": "ConsentRequest"
       },
@@ -1273,6 +1341,11 @@
           },
           "value_type": {
             "type": "string",
+            "enum": [
+              "boolean",
+              "categorical",
+              "multichoice"
+            ],
             "title": "Value Type"
           },
           "options": {
@@ -1288,6 +1361,11 @@
               }
             ],
             "title": "Options"
+          },
+          "demo_only": {
+            "type": "boolean",
+            "title": "Demo Only",
+            "default": true
           }
         },
         "type": "object",
@@ -1356,6 +1434,11 @@
           },
           "readiness": {
             "type": "string",
+            "enum": [
+              "ready",
+              "needs_review",
+              "unavailable"
+            ],
             "title": "Readiness",
             "default": "ready"
           }
@@ -1381,7 +1464,12 @@
           },
           "provider_status": {
             "additionalProperties": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "available",
+                "unavailable",
+                "not_configured"
+              ]
             },
             "type": "object",
             "title": "Provider Status"
@@ -1441,7 +1529,9 @@
           "age_years": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "integer",
+                "maximum": 130.0,
+                "minimum": 0.0
               },
               {
                 "type": "null"
@@ -1451,11 +1541,22 @@
           },
           "sex_for_model": {
             "type": "string",
+            "enum": [
+              "M",
+              "F",
+              "unknown"
+            ],
             "title": "Sex For Model",
             "default": "unknown"
           },
           "health_goal": {
             "type": "string",
+            "enum": [
+              "general_wellbeing",
+              "balanced_nutrition",
+              "active_lifestyle",
+              "muscle_gain"
+            ],
             "title": "Health Goal",
             "default": "general_wellbeing"
           },
@@ -1521,6 +1622,11 @@
         "properties": {
           "status": {
             "type": "string",
+            "enum": [
+              "completed",
+              "unavailable",
+              "skipped"
+            ],
             "title": "Status",
             "default": "unavailable"
           },
@@ -1541,8 +1647,15 @@
       },
       "MonitoringEntryRequest": {
         "properties": {
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Recorded At"
+          },
           "wellbeing_note": {
             "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
             "title": "Wellbeing Note"
           },
           "symptom_tags": {
@@ -1842,6 +1955,11 @@
         "properties": {
           "level": {
             "type": "string",
+            "enum": [
+              "none",
+              "review_recommended",
+              "urgent"
+            ],
             "title": "Level",
             "default": "none"
           },

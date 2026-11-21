@@ -5,8 +5,9 @@ import { useAuth } from '../state/AuthContext';
 import AuthNavigator from './AuthNavigator';
 import AppStack from './AppStack';
 import { tokens } from '../theme/tokens';
+import { ScreenShell, ScreenState } from '../components/UI';
 export default function RootNavigator() {
-  const { ready, user } = useAuth();
+  const { ready, user, startupError, retryStartup } = useAuth();
   if (!ready)
     return (
       <View
@@ -20,6 +21,11 @@ export default function RootNavigator() {
         <ActivityIndicator color={tokens.color.text} />
       </View>
     );
+  if (startupError) return (
+    <ScreenShell>
+      <ScreenState title="Layanan belum dapat dihubungi" message={startupError} action="Coba lagi" onPress={retryStartup} />
+    </ScreenShell>
+  );
   return (
     <NavigationContainer key={user ? 'signed-in' : 'signed-out'}>
       {user ? <AppStack /> : <AuthNavigator />}

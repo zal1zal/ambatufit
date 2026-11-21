@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.db import HealthProfile, Assessment, AssessmentEvidence, MonitoringEntry, GuidanceSnapshot
@@ -35,17 +35,17 @@ class HealthRepository:
 
     def update_profile(self, user_id: str, dto: HealthProfileDTO) -> HealthProfile:
         profile = self.get_or_create_profile(user_id)
-        if dto.age_years is not None:
+        if 'age_years' in dto.model_fields_set:
             profile.age_years = dto.age_years
-        if dto.sex_for_model in ("M", "F", "unknown"):
+        if 'sex_for_model' in dto.model_fields_set:
             profile.sex_for_model = dto.sex_for_model
-        if dto.health_goal:
+        if 'health_goal' in dto.model_fields_set:
             profile.health_goal = dto.health_goal
-        if dto.dietary_preferences is not None:
+        if 'dietary_preferences' in dto.model_fields_set:
             profile.dietary_preferences = dto.dietary_preferences
-        if dto.activity_preferences is not None:
+        if 'activity_preferences' in dto.model_fields_set:
             profile.activity_preferences = dto.activity_preferences
-        if dto.known_conditions is not None:
+        if 'known_conditions' in dto.model_fields_set:
             profile.known_conditions = dto.known_conditions
         profile.updated_at = datetime.utcnow()
         self.db.commit()
@@ -114,7 +114,7 @@ class HealthRepository:
         entry = MonitoringEntry(
             id=entry_id,
             user_id=user_id,
-            recorded_at=datetime.utcnow(),
+            recorded_at=req.recorded_at.astimezone(timezone.utc).replace(tzinfo=None),
             wellbeing_note=req.wellbeing_note,
             symptom_tags_json=json.dumps(req.symptom_tags),
         )

@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     INTEGRATION_API_TOKEN: str = "replace-for-external-host-integration-token"
     INTEGRATION_TIMEOUT_SECONDS: float = 5.0
     INTEGRATION_MODE: str = "mock"  # mock or live
+    PARTNER_CONTRACTS_CONFIRMED: bool = False
+    NUTRITION_PROVIDER_BASE_URL: str = ''
+    GYM_PROVIDER_BASE_URL: str = ''
+    NUTRITION_PROVIDER_API_KEY: str = ''
+    GYM_PROVIDER_API_KEY: str = ''
     
     # Partner API Keys for server-to-server calls to AmbatuFit
     # Format: "provider_id:api_key,provider_id2:api_key2"

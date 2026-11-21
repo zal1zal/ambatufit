@@ -1,13 +1,13 @@
 {
   "id": "asm-demo-001",
-  "status": "completed",
-  "created_at": "2026-11-20T09:15:00Z",
-  "summary": "Analisis pola gejala AI selesai. Pola keluhan Anda telah dicatat secara informatif.",
+  "status": "model_unavailable",
+  "created_at": "2026-11-20T09:00:00Z",
+  "summary": "DATA DEMO: Ringkasan keluhan sintetis tersimpan.",
   "general_information": [
-    "Pola keluhan Anda cocok dengan profil gejala umum yang tercatat dalam dataset studi."
+    "Informasi awal bersifat umum."
   ],
   "follow_up_actions": [
-    "Pantau perkembangan gejala dalam 24-48 jam ke depan."
+    "Pertimbangkan konsultasi profesional jika keluhan berlanjut."
   ],
   "safety": {
     "level": "none",
@@ -15,9 +15,8 @@
     "rule_ids": []
   },
   "ml_assessment": {
-    "status": "completed",
-    "model_version": "ambatufit-ddxplus-lr-v1.0"
+    "status": "unavailable",
+    "model_version": null
   },
   "disclaimer": "Hasil penilaian awal ini bersifat informatif dan bukan diagnosis medis."
 }
-

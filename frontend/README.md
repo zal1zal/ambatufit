@@ -1,46 +1,112 @@
 # AmbatuFit Expo frontend
 
-Standalone React Native Expo client for AmbatuFit's Personal Health Intelligence, Consultation & Booking, and Identity & Access contexts. Nutrition data belongs to AmbatuNoutrish; gym and fitness data belongs to ambatomove. Health information is educational, preliminary, and never a medical diagnosis.
+Panduan menjalankan aplikasi pada Android, iOS, emulator, tablet, dan web. Aplikasi memakai Expo SDK 58 dan React Native 0.88.1.
 
-## Run locally
+## Yang diperlukan
 
-Use Node.js 24 LTS and npm. This project uses Expo SDK 58 (React Native 0.88.1 / React 19.3). From `frontend/`:
+- Node.js 24 LTS dan npm.
+- Backend core tersedia di alamat yang bisa dijangkau perangkat.
+- Untuk layanan mitra, integration service berjalan di host non-STB dan tersedia melalui HTTPS atau jaringan lokal.
+- Expo Go terbaru yang kompatibel dengan SDK proyek untuk uji cepat di Android/iOS. Untuk web gunakan browser desktop.
 
-```sh
+## 1. Pasang paket
+
+Dari root repository:
+
+```powershell
+cd frontend
 npm ci
-cp .env.example .env
+Copy-Item .env.example .env
+```
+
+Edit `.env` menurut alamat server yang dipakai. Nilainya dibundel ke aplikasi; jangan masukkan token atau password.
+
+### Backend lokal di komputer yang sama
+
+Ubah `frontend/.env`:
+
+```dotenv
+EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1
+EXPO_PUBLIC_INTEGRATION_API_BASE_URL=http://127.0.0.1:8200/integration/v1
+```
+
+Ini cocok untuk Expo Web di komputer tersebut. Android Emulator Android Studio memakai `10.0.2.2` sebagai alamat host:
+
+```dotenv
+EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:8000/api/v1
+EXPO_PUBLIC_INTEGRATION_API_BASE_URL=http://10.0.2.2:8200/integration/v1
+```
+
+### Android/iPhone fisik pada Wi-Fi yang sama
+
+Cari alamat IPv4 LAN komputer yang menjalankan backend (Windows: `ipconfig`). Ganti contoh `192.168.1.10` dengan IP komputer itu:
+
+```dotenv
+EXPO_PUBLIC_API_BASE_URL=http://192.168.1.10:8000/api/v1
+EXPO_PUBLIC_INTEGRATION_API_BASE_URL=http://192.168.1.10:8200/integration/v1
+```
+
+Pastikan firewall mengizinkan koneksi ke port 8000 dan 8200, komputer dan ponsel berada pada jaringan yang dapat saling mengakses, serta backend bind ke `0.0.0.0`. Jika menjalankan backend di STB melalui tunnel, gunakan hostname HTTPS:
+
+```dotenv
+EXPO_PUBLIC_API_BASE_URL=https://<hostname-stb>/api/v1
+EXPO_PUBLIC_INTEGRATION_API_BASE_URL=https://<hostname-integration>/integration/v1
+```
+
+Integration service tidak termasuk container STB; hostname kedua harus menunjuk ke host integration yang benar-benar berjalan. Jika tidak tersedia, halaman mitra akan menampilkan layanan tidak terhubung.
+
+## 2. Jalankan di perangkat
+
+Pastikan core backend telah berjalan. Jalankan:
+
+```powershell
 npm start
 ```
 
-Set `EXPO_PUBLIC_API_BASE_URL` to a reachable core API ending in `/api/v1`, and `EXPO_PUBLIC_INTEGRATION_API_BASE_URL` to the integration service ending in `/integration/v1`. Android devices need a routable LAN address, not laptop loopback. Public Expo variables are bundled into the app; never put credentials or service tokens there. Production builds require approved HTTPS URLs.
+- **Android fisik:** pasang Expo Go, pastikan ponsel dan komputer dalam Wi-Fi yang sama, lalu pindai QR dengan Expo Go.
+- **iPhone/iPad:** pasang Expo Go dari App Store, pindai QR memakai kamera, lalu buka dengan Expo Go. Komputer dan perangkat perlu dapat saling terhubung.
+- **Android Emulator:** buka emulator terlebih dahulu, lalu tekan `a` pada jendela Expo atau jalankan `npm run android`. Gunakan `10.0.2.2` untuk alamat backend di komputer.
+- **iOS Simulator:** pada macOS dengan Xcode, tekan `i` di jendela Expo atau jalankan `npm run ios`. Proyek ini tidak menambahkan script `ios` khusus; gunakan tombol Expo.
+- **Web/Desktop:** jalankan `npm run web` (bila target web dipakai, pasang paket web Expo yang diminta CLI), atau tekan `w` pada Expo. Gunakan URL backend yang bisa dijangkau browser. CORS harus mengizinkan origin browser.
+- **Perangkat di jaringan berbeda:** gunakan hostname backend HTTPS yang valid; alamat LAN dan `localhost` tidak dapat dijangkau melalui internet.
 
-## Screens and routes
+Jika QR tidak dapat tersambung di jaringan kampus/kantor, jalankan `npx expo start --tunnel`. Tunnel Expo hanya menghubungkan bundler JavaScript; tunnel itu tidak mengganti URL API di `.env`. Setelah mengubah `.env`, hentikan dan mulai lagi Expo agar nilai dibundel ulang.
 
-Tabs: `Home`, `SymptomAssessment`, `Guidance`, `Progress`, `Profile`. Authentication: `Login`. Stack routes: `AssessmentResult`, `AssessmentHistory`, `HealthProfileEdit`, `Nutrition`, `Gyms`, `Professionals`, `ProfessionalDetail`, `Booking`, `MyBookings`, and `ProfessionalSharedAssessment` (professional role only).
+## Akun demo lokal
 
-`src/services/ApiService.js` is the single HTTP gateway. It implements core auth, profile, assessment/evidence, guidance, monitoring, directory/slots, bookings, consent, capabilities, and the integration endpoints for AmbatuNoutrish food and ambatomove gyms. It never substitutes a failed live request with synthetic success. No backend OpenAPI document, service host, integration credentials, or demo account is included in this repository, so configure those before use. Create a test account via the backend's approved workflow.
+Setelah menjalankan seed backend, akun sintetis yang tersedia:
+- Email: `pengguna.demo@ambatufit.local`
+- Password: `DemoPass123!`
 
-Symptom questions use actual evidence metadata; no evidence codes are invented. Results remain non-diagnostic. Safety alerts take precedence. Sharing is unchecked by default and requires a specific assessment, professional, and booking. Booking collisions map to HTTP 409 messaging.
+Gunakan hanya pada database demo lokal yang dibuat oleh tim. Jangan gunakan kredensial demo pada server publik.
 
-## Design implementation
+## Navigasi
 
-Design tokens are imported from `design/design-tokens.json` (Figma v2). Fonts are loaded from the licensed Google Fonts packages: Barlow Condensed, IBM Plex Sans, and IBM Plex Mono. The Figma navigation SVGs are local assets and used by tabs and primary actions. All nine named PNG artworks are exported from the original Figma artwork frames and mapped locally; app icon and splash are configured. Android screenshots were not captured, so final pixel parity is not claimed. See `design/design-acceptance.md` and `design/asset-manifest.json`.
+Tab: `Home`, `SymptomAssessment`, `Guidance`, `Progress`, `Profile`. Login: `Login`. Detail dibuka melalui stack: `AssessmentResult`, `AssessmentHistory`, `HealthProfileEdit`, `Nutrition`, `Gyms`, `Professionals`, `ProfessionalDetail`, `Booking`, dan `MyBookings`.
 
-## Checks
+Semua HTTP dikirim lewat `src/services/ApiService.js`. Kontrak OpenAPI lokal ada di `src/contracts/`; perbarui secara eksplisit setelah mengubah backend. Backend development memakai evidence dan data profesional sintetis. Mitra berstatus `not_configured` sampai API, URL dan kredensial partner benar-benar dikonfigurasi. AI dapat tampil tidak tersedia bila model eksternal belum disiapkan.
 
-```sh
+## Build APK Android
+
+Dengan EAS CLI dan akun/proyek EAS yang sudah disiapkan, atur dua URL production HTTPS di environment build, lalu:
+
+```powershell
+npx eas-cli build --platform android --profile production
+```
+
+Unduh hasil APK dari build yang selesai dan diverifikasi. README ini tidak menyertakan APK atau mengklaim instalasi device sudah diuji.
+
+## Tes dan diagnosis masalah
+
+```powershell
 npm test
 npm run lint
 npm run verify:tokens
 npm run verify:contracts
-npx expo-doctor
 ```
 
-The test suite checks route IDs, DTO guards, error mapping, token values, and an urgent safety component. These unit tests are not proof of live API connectivity. `reports/functional-test-matrix.md` records blocked runtime and integration checks; update it with observed device/backend evidence.
-
-## Android release
-
-The EAS production profile targets an internal APK. Configure an EAS project and verified production HTTPS endpoints, then run `npm run build:android`. Download the completed EAS artifact and copy it to `frontend/Aplikasi_Release.apk` only after verifying it. Device installation, smoke testing, icon/splash verification, and the required APK are not yet complete because no EAS credentials, production endpoints, or Android device were supplied.
-
-
-Validation on 2026-11-20: 9 Jest suites / 18 tests passed; Expo Doctor 18/18 passed. Run npm run verify:release with production environment variables before requesting a release build. See reports/completion-report.md for phase coverage. After obtaining a verified APK, install with adb install -r Aplikasi_Release.apk and test startup, login, all five tabs, assessment, monitoring, booking and logout on a device.
+- **Network request gagal:** pastikan base URL berakhiran `/api/v1` atau `/integration/v1`, server sedang hidup, dan alamat sesuai jenis perangkat.
+- **Android fisik tidak mencapai backend lokal:** jangan pakai `localhost`; pakai IP LAN komputer dan periksa firewall.
+- **Login tidak jalan:** seed database backend lalu gunakan akun demo lokal.
+- **Expo memuat konfigurasi lama:** stop bundler, lalu `npx expo start --clear`.
+- **Gagal build native:** gunakan versi Node/Expo sesuai bagian prasyarat dan jalankan `npx expo-doctor`.

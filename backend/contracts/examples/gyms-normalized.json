@@ -1,18 +1,5 @@
 {
-  "items": [
-    {
-      "id": "gym-001",
-      "name": "AmbatoMove Fitness Ganesha",
-      "address": "Jl. Ganesha No. 10, Bandung",
-      "latitude": -6.8915,
-      "longitude": 107.6107,
-      "facilities": ["Cardio Zone", "Free Weights", "Locker Room", "Shower"],
-      "opening_hours": "06:00 - 22:00 WIB",
-      "class_schedule": ["HIIT (Senin 18:30)", "Yoga (Rabu 07:00)", "BodyPump (Jumat 19:00)"],
-      "provider_id": "ambatomove"
-    }
-  ],
-  "total": 1,
-  "provider_status": "available"
+  "items": [],
+  "total": 0,
+  "provider_status": "not_configured"
 }
-

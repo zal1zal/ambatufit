@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel
+from app.schemas.base import ApiModel as BaseModel
 
 
 class PartnerBookingRequest(BaseModel):

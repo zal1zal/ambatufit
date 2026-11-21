@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "id": "slot-demo-001",
+      "professional_id": "pro-demo-001",
+      "starts_at": "2026-11-20T09:00:00Z",
+      "ends_at": "2026-11-20T10:00:00Z",
+      "is_available": true
+    }
+  ],
+  "total": 1
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Text, View, Pressable } from 'react-native';
 import { ApiService } from '../services/ApiService';
 import { userMessage } from '../services/apiErrors';
@@ -29,39 +29,56 @@ import { useAuth } from '../state/AuthContext';
 
 const records = (d) => (Array.isArray(d) ? d : d?.items || []);
 const getError = (e) => userMessage(e);
-function useRemote(loader, deps = []) {
+function useRemote(loader, deps = [], navigation) {
+  const requestId = useRef(0);
+  const mounted = useRef(true);
   const [data, setData] = useState(null),
     [error, setError] = useState(''),
-    [loading, setLoading] = useState(false);
+    [loading, setLoading] = useState(true);
   const load = async () => {
+    const current = ++requestId.current;
     setLoading(true);
     setError('');
+    setData(null);
     try {
-      setData(await loader());
+      const result = await loader();
+      if (mounted.current && current === requestId.current) setData(result);
     } catch (e) {
-      setError(getError(e));
+      if (mounted.current && current === requestId.current) setError(getError(e));
     } finally {
-      setLoading(false);
+      if (mounted.current && current === requestId.current) setLoading(false);
     }
   };
+  useEffect(() => () => { mounted.current = false; requestId.current++; }, []);
+  useEffect(() => navigation?.addListener?.('focus', load), [navigation, ...deps]);
   useEffect(() => {
     let active = true;
+    const current = ++requestId.current;
     (async () => {
       setLoading(true);
+      setError('');
+      setData(null);
       try {
         const d = await loader();
-        if (active) setData(d);
+        if (active && current === requestId.current) setData(d);
       } catch (e) {
-        if (active) setError(getError(e));
+        if (active && current === requestId.current) setError(getError(e));
       } finally {
-        if (active) setLoading(false);
+        if (active && current === requestId.current) setLoading(false);
       }
     })();
     return () => {
       active = false;
+      requestId.current++;
     };
   }, deps);
   return { data, error, loading, reload: load, setData };
+}
+function guidanceReadiness(data) {
+  if (!data) return 'unavailable';
+  const items = records(data);
+  if (items.some((item) => item.readiness === 'needs_review')) return 'needs_review';
+  return items.some((item) => item.readiness === 'ready') ? 'ready' : 'unavailable';
 }
 function DataState({ loading, error, reload, empty, title = 'Data belum tersedia' }) {
   if (loading) return <ScreenState title="Memuat informasi" message="Mohon tunggu sebentar." />;
@@ -162,8 +179,9 @@ export function LoginScreen({ navigation }) {
 }
 
 export function HomeScreen({ navigation }) {
-  const cap = useRemote(() => ApiService.system.capabilities());
-  const guidance = useRemote(() => ApiService.guidance.get());
+  const cap = useRemote(() => ApiService.system.capabilities(), [], navigation);
+  const guidance = useRemote(() => ApiService.guidance.get(), [], navigation);
+  const readiness = guidanceReadiness(guidance.data);
   return (
     <Page
       navigation={navigation}
@@ -209,12 +227,12 @@ export function HomeScreen({ navigation }) {
           title="Informasi nutrisi"
           onPress={() => navigation.navigate(ROUTES.Nutrition)}
         />
-        {guidance.data?.readiness === 'ready' ? (
+        {readiness === 'ready' ? (
           <SecondaryButton
             title="Lihat fasilitas kebugaran"
             onPress={() => navigation.navigate(ROUTES.Gyms)}
           />
-        ) : guidance.data?.readiness === 'needs_review' ? (
+        ) : readiness === 'needs_review' ? (
           <Text style={styles.bodySmall}>
             Informasi aktivitas kebugaran ditunda sampai keluhan ditinjau.
           </Text>
@@ -227,8 +245,7 @@ export function HomeScreen({ navigation }) {
             ? 'Memeriksa ketersediaan sistem…'
             : cap.error
               ? 'Status sistem belum dapat diperiksa.'
-              : cap.data?.ai_inference?.status === 'available' ||
-                  cap.data?.ai_inference?.available === true
+              : cap.data?.ai_inference === 'available'
                 ? 'AI: TERSEDIA'
                 : 'AI: TIDAK TERSEDIA / status mengikuti sistem'}
         </Text>
@@ -246,7 +263,7 @@ export function HomeScreen({ navigation }) {
 }
 
 export function SymptomAssessmentScreen({ navigation }) {
-  const remote = useRemote(() => ApiService.assessments.evidences());
+  const remote = useRemote(() => ApiService.assessments.evidences(), [], navigation);
   const evidences = records(remote.data?.items || remote.data);
   const [answers, setAnswers] = useState({}),
     [duration, setDuration] = useState(''),
@@ -306,6 +323,10 @@ export function SymptomAssessmentScreen({ navigation }) {
         </Text>
       </Card>
       <DataState loading={remote.loading} error={remote.error} reload={remote.reload} />
+      {!remote.loading && !remote.error && !evidences.length && <ScreenState title="Katalog gejala belum tersedia" message="Pertanyaan gejala belum dikonfigurasi untuk layanan ini." action="Coba lagi" onPress={remote.reload} />}
+      {evidences.some((item) => item.demo_only) && (
+        <Text style={styles.bodySmall}>DATA DEMO: katalog dan skrining simulasi; belum merupakan metadata DDXPlus atau aturan klinis yang ditinjau.</Text>
+      )}
       {!remote.loading &&
         !remote.error &&
         evidences.map((item) => (
@@ -356,6 +377,7 @@ export function AssessmentResultScreen({ navigation, route }) {
         ? ApiService.assessments.get(id)
         : Promise.reject(new Error('ID penilaian tidak tersedia.')),
     [id],
+    navigation,
   );
   const a = remote.data;
   const status = a?.status;
@@ -383,6 +405,7 @@ export function AssessmentResultScreen({ navigation, route }) {
           )}
           <Card>
             <TechnicalLabel>RINGKASAN / SERVER</TechnicalLabel>
+            <Text style={styles.body}>{a.summary}</Text>
             <Text style={styles.cardTitle}>Informasi umum</Text>
             {(a.general_information || []).map((x, i) => (
               <Text key={i} style={styles.body}>
@@ -413,7 +436,7 @@ export function AssessmentResultScreen({ navigation, route }) {
 }
 
 export function AssessmentHistoryScreen({ navigation }) {
-  const r = useRemote(() => ApiService.assessments.list());
+  const r = useRemote(() => ApiService.assessments.list(), [], navigation);
   const items = records(r.data);
   return (
     <Page
@@ -453,9 +476,9 @@ export function AssessmentHistoryScreen({ navigation }) {
 }
 
 export function GuidanceScreen({ navigation }) {
-  const r = useRemote(() => ApiService.guidance.get());
+  const r = useRemote(() => ApiService.guidance.get(), [], navigation);
   const items = records(r.data);
-  const readiness = r.data?.readiness;
+  const readiness = guidanceReadiness(r.data);
   const status = r.data?.provider_status || {};
   return (
     <Page
@@ -467,7 +490,7 @@ export function GuidanceScreen({ navigation }) {
       <DataState loading={r.loading} error={r.error} reload={r.reload} />
       {!r.loading &&
         !r.error &&
-        items.map((x, i) => <GuidanceCard key={x.id || i} item={x} status={readiness} />)}
+        items.map((x, i) => <GuidanceCard key={x.id || i} item={x} status={x.readiness} />)}
       {readiness === 'needs_review' && (
         <SafetyNotice
           level="review_recommended"
@@ -497,7 +520,7 @@ export function GuidanceScreen({ navigation }) {
 }
 
 export function ProgressScreen({ navigation }) {
-  const r = useRemote(() => ApiService.monitoring.list());
+  const r = useRemote(() => ApiService.monitoring.list(), [], navigation);
   const items = records(r.data);
   const [note, setNote] = useState(''),
     [tags, setTags] = useState(''),
@@ -574,7 +597,7 @@ export function ProgressScreen({ navigation }) {
 }
 
 export function ProfileScreen({ navigation }) {
-  const r = useRemote(() => ApiService.profile.get());
+  const r = useRemote(() => ApiService.profile.get(), [], navigation);
   const auth = useAuth();
   const p = r.data || {};
   return (
@@ -622,7 +645,7 @@ export function ProfileScreen({ navigation }) {
 }
 
 export function HealthProfileEditScreen({ navigation }) {
-  const r = useRemote(() => ApiService.profile.get());
+  const r = useRemote(() => ApiService.profile.get(), [], navigation);
   const [goal, setGoal] = useState(''),
     [age, setAge] = useState(''),
     [sex, setSex] = useState(''),
@@ -650,7 +673,7 @@ export function HealthProfileEditScreen({ navigation }) {
     try {
       await ApiService.profile.update({
         health_goal: goal,
-        ...(age ? { age_years: Number(age) } : {}),
+        age_years: age ? Number(age) : null,
         ...(sex ? { sex_for_model: sex } : {}),
       });
       navigation.goBack();
@@ -701,7 +724,7 @@ export function HealthProfileEditScreen({ navigation }) {
         </Pressable>
       ))}
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <PrimaryButton title="Simpan perubahan" onPress={save} loading={busy} />
+      <PrimaryButton title="Simpan perubahan" onPress={save} loading={busy} disabled={r.loading || !!r.error} />
     </Page>
   );
 }
@@ -716,6 +739,7 @@ function PartnerScreen({ navigation, route, type }) {
   const load = async (q = query, c = city) => {
     setLoading(true);
     setError('');
+    setData(null);
     try {
       setData(
         await (nutrition
@@ -751,11 +775,17 @@ function PartnerScreen({ navigation, route, type }) {
       <SecondaryButton title="Cari" onPress={() => load()} />
       <TechnicalLabel>{nutrition ? 'Sumber: AmbatuNoutrish' : 'Sumber: ambatomove'}</TechnicalLabel>
       <DataState loading={loading} error={error} reload={() => load()} />
-      {!loading && !error && !items.length && (
+      {!loading && !error && (
         <ServiceStatusNotice
           provider={provider}
           status={data?.provider_status || 'not_configured'}
         />
+      )}
+      {!loading && !error && !items.length && data?.provider_status === 'available' && (
+        <Text style={styles.bodySmall}>Belum ada hasil yang sesuai.</Text>
+      )}
+      {!loading && !error && data?.provider_status !== 'available' && (
+        <SecondaryButton title="Coba lagi" onPress={() => load()} />
       )}
       {items.map((x) => (
         <Card key={x.id}>
@@ -790,7 +820,7 @@ export const GymsScreen = (props) => <PartnerScreen {...props} type="gym" />;
 
 export function ProfessionalsScreen({ navigation, route }) {
   const [specialty, setSpecialty] = useState('');
-  const r = useRemote(() => ApiService.professionals.list(specialty), [specialty]);
+  const r = useRemote(() => ApiService.professionals.list(specialty), [specialty], navigation);
   const items = records(r.data);
   return (
     <Page
@@ -833,7 +863,7 @@ export function ProfessionalsScreen({ navigation, route }) {
 }
 export function ProfessionalDetailScreen({ navigation, route }) {
   const id = route.params?.professional_id;
-  const r = useRemote(() => ApiService.professionals.slots(id), [id]);
+  const r = useRemote(() => ApiService.professionals.slots(id), [id], navigation);
   const slots = records(r.data);
   const [chosen, setChosen] = useState(null);
   return (
@@ -862,7 +892,7 @@ export function ProfessionalDetailScreen({ navigation, route }) {
       ))}
       <PrimaryButton
         title="Lanjutkan pemesanan"
-        disabled={!chosen}
+        disabled={!chosen || r.loading || !!r.error || !slots.some((slot) => slot.id === chosen.id)}
         onPress={() =>
           navigation.navigate(ROUTES.Booking, {
             professional_id: id,
@@ -964,7 +994,7 @@ export function BookingScreen({ navigation, route }) {
   );
 }
 export function MyBookingsScreen({ navigation, route }) {
-  const r = useRemote(() => ApiService.bookings.list());
+  const r = useRemote(() => ApiService.bookings.list(), [], navigation);
   const items = records(r.data);
   return (
     <Page
@@ -1008,7 +1038,7 @@ export function MyBookingsScreen({ navigation, route }) {
 }
 export function ProfessionalSharedAssessmentScreen({ navigation, route }) {
   const id = route.params?.booking_id;
-  const r = useRemote(() => ApiService.professional.sharedAssessment(id), [id]);
+  const r = useRemote(() => ApiService.professional.sharedAssessment(id), [id], navigation);
   return (
     <Page
       navigation={navigation}

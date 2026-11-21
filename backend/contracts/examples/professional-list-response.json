@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "id": "pro-demo-001",
+      "display_name": "Tenaga Profesional DEMO",
+      "specialty": "doctor",
+      "description": "Profil fiktif untuk demonstrasi akademik.",
+      "is_active": true
+    }
+  ],
+  "total": 1
+}

@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List, Optional, Literal
+from pydantic import Field, AwareDatetime
+from app.schemas.base import ApiModel as BaseModel
 
 
 class SlotDTO(BaseModel):
@@ -32,14 +33,17 @@ class BookingResponse(BaseModel):
     slot_id: str
     status: str
     created_at: datetime
+    professional_name: Optional[str] = None
+    starts_at: Optional[datetime] = None
+    consent_id: Optional[str] = None
 
 
 class ConsentRequest(BaseModel):
     assessment_id: str
     professional_id: str
     booking_id: str
-    grant: bool = True
-    expires_at: Optional[datetime] = None
+    grant: Literal[True]
+    expires_at: Optional[AwareDatetime] = None
 
 
 class ConsentResponse(BaseModel):

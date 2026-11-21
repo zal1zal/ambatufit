@@ -86,6 +86,9 @@ class ConsultationService:
                 slot_id=b.slot_id,
                 status=b.status,
                 created_at=b.created_at,
+                professional_name=b.professional.display_name,
+                starts_at=b.slot.starts_at,
+                consent_id=(consent.id if (consent := self.identity_repo.get_active_consent_for_booking(b.id, b.professional_id)) else None),
             )
             for b in bookings
         ]
@@ -126,6 +129,9 @@ class ConsultationService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Janji konsultasi tidak ditemukan.",
             )
+
+        if booking.professional_id != professional_user_id:
+            raise HTTPException(status_code=403, detail='Ringkasan hanya dapat diakses profesional pada pemesanan ini.')
 
         # In demo seeds, professional user id maps to professional entity id
         consent = self.identity_repo.get_active_consent_for_booking(

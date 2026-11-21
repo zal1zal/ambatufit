@@ -1,30 +1,22 @@
-# Functional test matrix
+# Functional test matrix — 2026-11-21
 
-Date: 2026-11-20. Device: unavailable. Unit checks are not live API evidence.
+Local synthetic API was exercised through the actual `ApiService.js` using `backend/scripts/smoke_frontend.py`. No Android device or deployed HTTPS host was available. “Pass local” means observed against an isolated local database; it is not evidence of production connectivity.
 
-| ID | Feature | Expected / actual evidence | Status |
+| ID | Feature | Observed evidence | Status |
 |---|---|---|---|
-| P-01 | Startup/session | SecureStore restore + `/auth/me`; backend not configured | blocked |
-| P-02 | Login validation | client validation implemented; live 401 unavailable | blocked |
-| P-03 | Tabs/stack | exact five tab IDs and stack IDs asserted in Jest | pass: `Navigation.test.js` |
-| P-04 | Profile update | enum/optional fields flow implemented; no backend | blocked |
-| P-05–06 | Evidence and submit | API-driven catalog, validation, POST implemented; schema sample absent | blocked |
-| P-07–10 | Results/history | three outcome render paths and history implemented; server unavailable | blocked |
-| P-11 | Guidance | core route rendered independently of partner states | blocked live |
-| P-12–15 | Partner APIs | both integration calls and status handling implemented; no host/credentials | blocked |
-| P-16 | Monitoring | list/create/reload flow implemented; no backend | blocked |
-| P-17–18 | Directory/booking | real endpoint flow and 409 mapping implemented; no backend | blocked |
-| P-19–20 | Consent | opt-in scoped consent/revoke implemented; no backend | blocked |
-| P-21 | Production env | production HTTPS URLs not provided | blocked |
-| P-22 | Token parity | `npm run verify:tokens` and token test pass | pass |
-| P-23 | Android APK | EAS credentials/device unavailable | blocked |
-| P-24 | Jest | `npm test -- --runInBand`: 9 suites, 18 tests passed | pass |
+| P-01–02 | Startup, login, expired session | Jest session tests; local HTTP login and `/auth/me` | pass local |
+| P-03 | Five tabs and stack | `Navigation.test.js` | pass unit |
+| P-04 | Profile save/read | Local update, clear age, preserve preferences, read back | pass local |
+| P-05–06 | Evidence and assessment | Local catalog, typed POST, persisted result | pass local; DDXPlus catalog blocked |
+| P-07–10 | Results/history | Jest three result states; local unavailable result/history | pass local; real ML blocked |
+| P-11 | Guidance | Local guidance and urgent restriction; partner status `not_configured` | pass local |
+| P-12–15 | Partner APIs | Authenticated adapter routes and malformed/upstream failure tests | adapter pass; live partners blocked |
+| P-16 | Monitoring | Local create/list with timezone normalization | pass local |
+| P-17–18 | Directory/booking | Local directory, slots, booking and 409 collision | pass local |
+| P-19–20 | Consent | Local grant, professional access, revoke and subsequent 403 | pass local |
+| P-21 | Production HTTPS | Approved service URLs unavailable | blocked |
+| P-22 | Design tokens | `npm run verify:tokens` | pass |
+| P-23 | Android APK/device | EAS artifact and device unavailable | blocked |
+| P-24 | Automated checks | Jest, backend pytest, OpenAPI fixtures, lint, Android JS export | pass |
 
-No fallback fixtures are used to report live success. The checkout has no `backend/`, OpenAPI file, integration host, or partner credentials.
-
-
-Additional local checks: ESLint passed; design token inventory passed (21 colors); API route inventory passed (14 groups; OpenAPI comparison blocked because no schema is present); Android JavaScript export passed (2.73 MB bundle). Expo Doctor passed all 18 checks after enabling access to its validation services. No emulator was available for device screenshots or visual comparison.
-
-Follow-up regression evidence: SharedUI.test.jsx reproduced and then verified fixes for undefined exported styles and contradictory available-service copy. ScreenFlows.test.jsx validates blank login, three persisted assessment states, default consent without a grant, and empty progress notes. Release configuration check correctly rejects the two missing production URLs. See completion-report.md for all Guide 04 phases.
-
-SDK 58 follow-up: Expo Doctor 20/20, Jest 9 suites / 18 tests passed. Native Expo Go testing requires the user's Android phone. See sdk-58-upgrade.md.
+Evidence codes and safety rules are synthetic demo data pending actual DDXPlus metadata and clinical review. No live partner contract, trained model, STB deployment or APK has been verified.

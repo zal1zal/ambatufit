@@ -1,20 +1,19 @@
 {
   "items": [
     {
-      "id": "GUIDE-001",
+      "id": "demo-guidance",
       "category": "general_wellbeing",
-      "title": "Pencatatan Kebiasaan Sehat & Hidrasi Cukup",
-      "description": "Jaga hidrasi minimal 2 liter air per hari dan catat pola tidur serta aktivitas harian untuk menjaga kebugaran tubuh.",
+      "title": "Catatan kebiasaan",
+      "description": "DATA DEMO: catat perubahan kebiasaan dan keluhan.",
       "source": {
         "provider_id": "ambatufit",
-        "reference_id": "kemkes-germas-001"
+        "reference_id": "synthetic-example"
       },
       "readiness": "ready"
     }
   ],
   "provider_status": {
-    "ambatunoutrish": "available",
-    "ambatomove": "available"
+    "ambatunoutrish": "not_configured",
+    "ambatomove": "not_configured"
   }
 }
-

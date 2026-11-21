@@ -165,6 +165,8 @@ export function GuidanceCard({ item, status }) {
       </Text>
       {status === 'needs_review' ? (
         <Text style={styles.error}>Perlu peninjauan profesional sebelum aktivitas fisik.</Text>
+      ) : status === 'unavailable' ? (
+        <Text style={styles.bodySmall}>Panduan ini sedang tidak tersedia.</Text>
       ) : null}
     </Card>
   );
@@ -272,7 +274,7 @@ export function EvidenceInput({ evidence, value, onChange, error }) {
   const type = String(evidence.value_type || 'text').toLowerCase();
   const boolean = type.includes('bool');
   const label =
-    evidence.label || evidence.question || evidence.question_text || 'Pertanyaan gejala';
+    evidence.question_id || evidence.label_id || 'Pertanyaan gejala';
   return (
     <Card style={error ? { borderColor: tokens.color.danger } : null}>
       <Text style={styles.cardTitle}>{label}</Text>
@@ -283,17 +285,21 @@ export function EvidenceInput({ evidence, value, onChange, error }) {
             const v = typeof opt === 'object' ? (opt.value ?? opt.code) : opt;
             const choiceLabel =
               typeof opt === 'object'
-                ? (opt.label ?? opt.name ?? `Pilihan ${index + 1}`)
+                ? (opt.label_id ?? opt.label ?? opt.name ?? `Pilihan ${index + 1}`)
                 : typeof opt === 'boolean'
                   ? opt
                     ? 'Ya'
                     : 'Tidak'
                   : `Pilihan ${index + 1}`;
+            const multi = type === 'multichoice';
+            const selected = multi ? Array.isArray(value) && value.includes(v) : value === v;
             return (
               <Pressable
                 key={String(v)}
-                onPress={() => onChange(v)}
-                style={[styles.option, value === v && styles.selected]}
+                accessibilityRole={multi ? 'checkbox' : 'radio'}
+                accessibilityState={{ checked: selected }}
+                onPress={() => onChange(multi ? (selected ? value.filter((x) => x !== v) : [...(Array.isArray(value) ? value : []), v]) : v)}
+                style={[styles.option, selected && styles.selected]}
               >
                 <Text style={styles.body}>{choiceLabel}</Text>
               </Pressable>
