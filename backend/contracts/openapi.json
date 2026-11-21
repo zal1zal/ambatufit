@@ -1,0 +1,2061 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AmbatuFit STB Microservice",
+    "description": "Core backend service for AmbatuFit AI-assisted personal health platform. Deployed on STB.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health Check",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "Identity & Access Context"
+        ],
+        "summary": "Register User",
+        "operationId": "register_user_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Identity & Access Context"
+        ],
+        "summary": "Login User",
+        "operationId": "login_user_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "Identity & Access Context"
+        ],
+        "summary": "Get Current User Profile",
+        "operationId": "get_current_user_profile_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/consents/assessment-sharing": {
+      "post": {
+        "tags": [
+          "Identity & Access Context"
+        ],
+        "summary": "Grant Sharing Consent",
+        "operationId": "grant_sharing_consent_api_v1_consents_assessment_sharing_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/consents/assessment-sharing/{id}": {
+      "delete": {
+        "tags": [
+          "Identity & Access Context"
+        ],
+        "summary": "Revoke Sharing Consent",
+        "operationId": "revoke_sharing_consent_api_v1_consents_assessment_sharing__id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/profile": {
+      "get": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Get User Profile",
+        "operationId": "get_user_profile_api_v1_profile_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthProfileDTO"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Update User Profile",
+        "operationId": "update_user_profile_api_v1_profile_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealthProfileDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthProfileDTO"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/assessments/evidences": {
+      "get": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Get Evidence Catalog",
+        "operationId": "get_evidence_catalog_api_v1_assessments_evidences_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_EvidenceCatalogItem_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessments": {
+      "post": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Create Assessment",
+        "operationId": "create_assessment_api_v1_assessments_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssessmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "List Assessments",
+        "operationId": "list_assessments_api_v1_assessments_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_AssessmentListItem_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessments/{id}": {
+      "get": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Get Assessment Detail",
+        "operationId": "get_assessment_detail_api_v1_assessments__id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guidance": {
+      "get": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Get Guidance",
+        "operationId": "get_guidance_api_v1_guidance_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidanceResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/monitoring/entries": {
+      "post": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Add Monitoring Entry",
+        "operationId": "add_monitoring_entry_api_v1_monitoring_entries_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonitoringEntryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MonitoringEntryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "List Monitoring Entries",
+        "operationId": "list_monitoring_entries_api_v1_monitoring_entries_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_MonitoringEntryResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/system/capabilities": {
+      "get": {
+        "tags": [
+          "Personal Health Intelligence Context"
+        ],
+        "summary": "Get Capabilities",
+        "operationId": "get_capabilities_api_v1_system_capabilities_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapabilityResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/professionals": {
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "List Professionals",
+        "operationId": "list_professionals_api_v1_professionals_get",
+        "parameters": [
+          {
+            "name": "specialty",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(doctor|dietitian)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Specialty"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_ProfessionalDTO_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/professionals/{id}/slots": {
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Get Slots",
+        "operationId": "get_slots_api_v1_professionals__id__slots_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_SlotDTO_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bookings": {
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Get My Bookings",
+        "operationId": "get_my_bookings_api_v1_bookings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_BookingResponse_"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Book Consultation",
+        "operationId": "book_consultation_api_v1_bookings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/professional/bookings/{id}/shared-assessment": {
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Get Shared Assessment",
+        "operationId": "get_shared_assessment_api_v1_professional_bookings__id__shared_assessment_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedAssessmentResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partner/professionals": {
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Partner Get Professionals",
+        "operationId": "partner_get_professionals_api_v1_partner_professionals_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "specialty",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(doctor|dietitian)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Specialty"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_ProfessionalDTO_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partner/professionals/{id}/slots": {
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Partner Get Slots",
+        "operationId": "partner_get_slots_api_v1_partner_professionals__id__slots_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_SlotDTO_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partner/bookings": {
+      "post": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Partner Create Booking",
+        "operationId": "partner_create_booking_api_v1_partner_bookings_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerBookingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerBookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AssessmentListItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "safety_level": {
+            "type": "string",
+            "title": "Safety Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "summary",
+          "safety_level"
+        ],
+        "title": "AssessmentListItem"
+      },
+      "AssessmentRequest": {
+        "properties": {
+          "evidence_entries": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceEntry"
+            },
+            "type": "array",
+            "title": "Evidence Entries"
+          },
+          "duration_days": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Duration Days",
+            "default": 1
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidence_entries"
+        ],
+        "title": "AssessmentRequest"
+      },
+      "AssessmentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "general_information": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "General Information"
+          },
+          "follow_up_actions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Follow Up Actions"
+          },
+          "safety": {
+            "$ref": "#/components/schemas/SafetyInfo"
+          },
+          "ml_assessment": {
+            "$ref": "#/components/schemas/MLAssessmentInfo"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "Hasil penilaian awal ini bersifat informatif dan bukan diagnosis medis."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "created_at",
+          "summary",
+          "safety",
+          "ml_assessment"
+        ],
+        "title": "AssessmentResponse"
+      },
+      "BookingRequest": {
+        "properties": {
+          "professional_id": {
+            "type": "string",
+            "title": "Professional Id"
+          },
+          "slot_id": {
+            "type": "string",
+            "title": "Slot Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "professional_id",
+          "slot_id"
+        ],
+        "title": "BookingRequest"
+      },
+      "BookingResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "external_user_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External User Ref"
+          },
+          "professional_id": {
+            "type": "string",
+            "title": "Professional Id"
+          },
+          "slot_id": {
+            "type": "string",
+            "title": "Slot Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "professional_id",
+          "slot_id",
+          "status",
+          "created_at"
+        ],
+        "title": "BookingResponse"
+      },
+      "CapabilityResponse": {
+        "properties": {
+          "ai_inference": {
+            "type": "string",
+            "title": "Ai Inference"
+          },
+          "nutrition_integration": {
+            "type": "string",
+            "title": "Nutrition Integration"
+          },
+          "gym_integration": {
+            "type": "string",
+            "title": "Gym Integration"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ai_inference",
+          "nutrition_integration",
+          "gym_integration"
+        ],
+        "title": "CapabilityResponse"
+      },
+      "ConsentRequest": {
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "title": "Assessment Id"
+          },
+          "professional_id": {
+            "type": "string",
+            "title": "Professional Id"
+          },
+          "booking_id": {
+            "type": "string",
+            "title": "Booking Id"
+          },
+          "grant": {
+            "type": "boolean",
+            "title": "Grant",
+            "default": true
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assessment_id",
+          "professional_id",
+          "booking_id"
+        ],
+        "title": "ConsentRequest"
+      },
+      "ConsentResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status"
+        ],
+        "title": "ConsentResponse"
+      },
+      "EvidenceCatalogItem": {
+        "properties": {
+          "evidence_code": {
+            "type": "string",
+            "title": "Evidence Code"
+          },
+          "label_id": {
+            "type": "string",
+            "title": "Label Id"
+          },
+          "question_id": {
+            "type": "string",
+            "title": "Question Id"
+          },
+          "value_type": {
+            "type": "string",
+            "title": "Value Type"
+          },
+          "options": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/EvidenceCatalogOption"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Options"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidence_code",
+          "label_id",
+          "question_id",
+          "value_type"
+        ],
+        "title": "EvidenceCatalogItem"
+      },
+      "EvidenceCatalogOption": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          },
+          "label_id": {
+            "type": "string",
+            "title": "Label Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "label_id"
+        ],
+        "title": "EvidenceCatalogOption"
+      },
+      "EvidenceEntry": {
+        "properties": {
+          "evidence_code": {
+            "type": "string",
+            "title": "Evidence Code"
+          },
+          "value": {
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidence_code",
+          "value"
+        ],
+        "title": "EvidenceEntry"
+      },
+      "GuidanceItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "source": {
+            "$ref": "#/components/schemas/GuidanceSource"
+          },
+          "readiness": {
+            "type": "string",
+            "title": "Readiness",
+            "default": "ready"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "title",
+          "description",
+          "source"
+        ],
+        "title": "GuidanceItem"
+      },
+      "GuidanceResponse": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "provider_status": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Provider Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "provider_status"
+        ],
+        "title": "GuidanceResponse"
+      },
+      "GuidanceSource": {
+        "properties": {
+          "provider_id": {
+            "type": "string",
+            "title": "Provider Id"
+          },
+          "reference_id": {
+            "type": "string",
+            "title": "Reference Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provider_id",
+          "reference_id"
+        ],
+        "title": "GuidanceSource"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthProfileDTO": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "age_years": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Years"
+          },
+          "sex_for_model": {
+            "type": "string",
+            "title": "Sex For Model",
+            "default": "unknown"
+          },
+          "health_goal": {
+            "type": "string",
+            "title": "Health Goal",
+            "default": "general_wellbeing"
+          },
+          "dietary_preferences": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Dietary Preferences"
+          },
+          "activity_preferences": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Activity Preferences"
+          },
+          "known_conditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Known Conditions"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "title": "HealthProfileDTO"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "MLAssessmentInfo": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "unavailable"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          }
+        },
+        "type": "object",
+        "title": "MLAssessmentInfo"
+      },
+      "MonitoringEntryRequest": {
+        "properties": {
+          "wellbeing_note": {
+            "type": "string",
+            "title": "Wellbeing Note"
+          },
+          "symptom_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Symptom Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "wellbeing_note"
+        ],
+        "title": "MonitoringEntryRequest"
+      },
+      "MonitoringEntryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Recorded At"
+          },
+          "wellbeing_note": {
+            "type": "string",
+            "title": "Wellbeing Note"
+          },
+          "symptom_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Symptom Tags"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "recorded_at",
+          "wellbeing_note",
+          "symptom_tags"
+        ],
+        "title": "MonitoringEntryResponse"
+      },
+      "PaginatedResponse_AssessmentListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AssessmentListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaginatedResponse[AssessmentListItem]"
+      },
+      "PaginatedResponse_BookingResponse_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BookingResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaginatedResponse[BookingResponse]"
+      },
+      "PaginatedResponse_EvidenceCatalogItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceCatalogItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaginatedResponse[EvidenceCatalogItem]"
+      },
+      "PaginatedResponse_MonitoringEntryResponse_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MonitoringEntryResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaginatedResponse[MonitoringEntryResponse]"
+      },
+      "PaginatedResponse_ProfessionalDTO_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProfessionalDTO"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaginatedResponse[ProfessionalDTO]"
+      },
+      "PaginatedResponse_SlotDTO_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SlotDTO"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaginatedResponse[SlotDTO]"
+      },
+      "PartnerBookingRequest": {
+        "properties": {
+          "external_user_ref": {
+            "type": "string",
+            "title": "External User Ref"
+          },
+          "professional_id": {
+            "type": "string",
+            "title": "Professional Id"
+          },
+          "slot_id": {
+            "type": "string",
+            "title": "Slot Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "external_user_ref",
+          "professional_id",
+          "slot_id"
+        ],
+        "title": "PartnerBookingRequest"
+      },
+      "PartnerBookingResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "external_user_ref": {
+            "type": "string",
+            "title": "External User Ref"
+          },
+          "professional_id": {
+            "type": "string",
+            "title": "Professional Id"
+          },
+          "slot_id": {
+            "type": "string",
+            "title": "Slot Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "external_user_ref",
+          "professional_id",
+          "slot_id",
+          "status",
+          "created_at"
+        ],
+        "title": "PartnerBookingResponse"
+      },
+      "ProfessionalDTO": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "specialty": {
+            "type": "string",
+            "title": "Specialty"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "display_name",
+          "specialty",
+          "description",
+          "is_active"
+        ],
+        "title": "ProfessionalDTO"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 3,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "RegisterRequest"
+      },
+      "SafetyInfo": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "title": "Level",
+            "default": "none"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          },
+          "rule_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Rule Ids"
+          }
+        },
+        "type": "object",
+        "title": "SafetyInfo"
+      },
+      "SharedAssessmentResponse": {
+        "properties": {
+          "assessment_id": {
+            "type": "string",
+            "title": "Assessment Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "safety_level": {
+            "type": "string",
+            "title": "Safety Level"
+          },
+          "general_information": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "General Information"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "Hasil penilaian awal ini bersifat informatif dan bukan diagnosis medis."
+          }
+        },
+        "type": "object",
+        "required": [
+          "assessment_id",
+          "user_id",
+          "created_at",
+          "summary",
+          "safety_level",
+          "general_information"
+        ],
+        "title": "SharedAssessmentResponse"
+      },
+      "SlotDTO": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "professional_id": {
+            "type": "string",
+            "title": "Professional Id"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "is_available": {
+            "type": "boolean",
+            "title": "Is Available"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "professional_id",
+          "starts_at",
+          "ends_at",
+          "is_available"
+        ],
+        "title": "SlotDTO"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "default": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserDTO"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in",
+          "user"
+        ],
+        "title": "TokenResponse"
+      },
+      "UserDTO": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "role"
+        ],
+        "title": "UserDTO"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      },
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}

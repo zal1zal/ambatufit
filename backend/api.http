@@ -1,0 +1,151 @@
+### AmbatuFit STB Microservice - REST Client Tests
+### Ganti host di bawah ini sesuai lingkungan (Lokal vs STB vs Cloudflare Tunnel)
+@baseUrl = http://127.0.0.1:8000
+# @baseUrl = http://127.0.0.1:8080
+# @baseUrl = https://ambatufit.stei.fun
+
+### 1. Health Check (STB Gateway / Core)
+GET {{baseUrl}}/health
+Accept: application/json
+
+### 2. System Capabilities Check
+GET {{baseUrl}}/api/v1/system/capabilities
+Accept: application/json
+
+### 3. Register User Baru
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "user.baru@ambatufit.local",
+  "password": "PasswordKuat123!"
+}
+
+### 4. Login User (Mendapatkan Token Bearer)
+# @name login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "pengguna.demo@ambatufit.local",
+  "password": "DemoPass123!"
+}
+
+### Simpan token dari respon login
+@authToken = {{login.response.body.access_token}}
+
+### 5. Cek Profil Pengguna (Auth / Me)
+GET {{baseUrl}}/api/v1/auth/me
+Authorization: Bearer {{authToken}}
+
+### 6. Ambil Profil Kesehatan Pengguna
+GET {{baseUrl}}/api/v1/profile
+Authorization: Bearer {{authToken}}
+
+### 7. Perbarui Profil Kesehatan
+PUT {{baseUrl}}/api/v1/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "age_years": 23,
+  "sex_for_model": "M",
+  "health_goal": "active_lifestyle",
+  "dietary_preferences": ["balanced_meals", "high_protein"],
+  "activity_preferences": ["running", "bodyweight"],
+  "known_conditions": []
+}
+
+### 8. Ambil Katalog Gejala Terstruktur (DDXPlus Evidence Catalog)
+GET {{baseUrl}}/api/v1/assessments/evidences
+Accept: application/json
+
+### 9. Kirim Penilaian Gejala (Normal - AI Inference)
+# @name assessmentNormal
+POST {{baseUrl}}/api/v1/assessments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "evidence_entries": [
+    {
+      "evidence_code": "E_JOINT_OR_MUSCLE_PAIN",
+      "value": true
+    },
+    {
+      "evidence_code": "E_FATIGUE",
+      "value": true
+    }
+  ],
+  "duration_days": 2,
+  "notes": "Nyeri lutut setelah berolahraga pagi."
+}
+
+### 10. Kirim Penilaian Gejala (Urgent Red-Flag Screening)
+POST {{baseUrl}}/api/v1/assessments
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "evidence_entries": [
+    {
+      "evidence_code": "E_SEVERE_CHEST_PAIN",
+      "value": true
+    },
+    {
+      "evidence_code": "E_SHORTNESS_OF_BREATH",
+      "value": true
+    }
+  ],
+  "duration_days": 1,
+  "notes": "Nyeri dada hebat dan sesak mendadak."
+}
+
+### 11. Riwayat Penilaian Gejala
+GET {{baseUrl}}/api/v1/assessments?limit=10&offset=0
+Authorization: Bearer {{authToken}}
+
+### 12. Dapatkan Panduan Kesehatan Personal (Deterministik + Integrasi)
+GET {{baseUrl}}/api/v1/guidance
+Authorization: Bearer {{authToken}}
+
+### 13. Catat Entri Pemantauan (Progress Monitoring)
+POST {{baseUrl}}/api/v1/monitoring/entries
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "wellbeing_note": "Kondisi lutut mulai membaik setelah istirahat dan kompres es.",
+  "symptom_tags": ["E_JOINT_OR_MUSCLE_PAIN"]
+}
+
+### 14. Riwayat Pemantauan Kebugaran
+GET {{baseUrl}}/api/v1/monitoring/entries
+Authorization: Bearer {{authToken}}
+
+### 15. Direktori Tenaga Profesional (Dokter / Ahli Gizi)
+GET {{baseUrl}}/api/v1/professionals?specialty=doctor
+Accept: application/json
+
+### 16. Lihat Slot Jadwal Konsultasi Dokter
+GET {{baseUrl}}/api/v1/professionals/pro-doc-001/slots
+Authorization: Bearer {{authToken}}
+
+### 17. Pesan Konsultasi Dokter
+POST {{baseUrl}}/api/v1/bookings
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "professional_id": "pro-doc-001",
+  "slot_id": "slot-doc-1"
+}
+
+### 18. Lihat Janji Konsultasi Saya
+GET {{baseUrl}}/api/v1/bookings
+Authorization: Bearer {{authToken}}
+
+### 19. Partner API: Konsumsi Direktori oleh AmbatuNoutrish / ambatomove
+GET {{baseUrl}}/api/v1/partner/professionals?specialty=dietitian
+X-API-Key: noutrish-sec-key-123
+

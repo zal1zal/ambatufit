@@ -1,0 +1,51 @@
+[
+  {
+    "rule_id": "GUIDE-001",
+    "goal": "general_wellbeing",
+    "category": "general_wellbeing",
+    "title": "Pencatatan Kebiasaan Sehat & Hidrasi Cukup",
+    "description": "Jaga hidrasi minimal 2 liter air per hari dan catat pola tidur serta aktivitas harian untuk menjaga kebugaran tubuh.",
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "kemkes-germas-001"
+    },
+    "readiness": "ready"
+  },
+  {
+    "rule_id": "GUIDE-002",
+    "goal": "balanced_nutrition",
+    "category": "nutrition",
+    "title": "Pedoman Piring Sehat & Isi Piringku",
+    "description": "Terapkan prinsip gizi seimbang: setengah piring sayur dan buah, seperempat piring karbohidrat kompleks, dan seperempat piring protein.",
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "kemkes-isi-piringku"
+    },
+    "readiness": "ready"
+  },
+  {
+    "rule_id": "GUIDE-003",
+    "goal": "active_lifestyle",
+    "category": "physical_activity",
+    "title": "Aktivitas Fisik Rutin Intensitas Sedang",
+    "description": "Lakukan jalan cepat atau senam aerobik ringan minimal 150 menit per minggu (30 menit, 5 hari seminggu).",
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "who-physical-activity-guideline"
+    },
+    "readiness": "ready"
+  },
+  {
+    "rule_id": "GUIDE-004",
+    "goal": "muscle_gain",
+    "category": "physical_activity",
+    "title": "Latihan Beban Progresif & Pemulihan Otot",
+    "description": "Lakukan latihan beban bertahap 2-3 kali seminggu dengan waktu istirahat minimal 48 jam antar kelompok otot yang sama.",
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "acsm-resistance-training"
+    },
+    "readiness": "ready"
+  }
+]
+

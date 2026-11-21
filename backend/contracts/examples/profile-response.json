@@ -1,0 +1,11 @@
+{
+  "user_id": "u-demo-001",
+  "age_years": 22,
+  "sex_for_model": "unknown",
+  "health_goal": "general_wellbeing",
+  "dietary_preferences": ["balanced_meals"],
+  "activity_preferences": ["walking", "cycling"],
+  "known_conditions": [],
+  "updated_at": "2026-11-20T09:00:00Z"
+}
+
