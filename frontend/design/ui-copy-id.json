@@ -1,0 +1,11 @@
+{
+  "app.name":"AmbatuFit","nav.home":"Beranda","nav.assessment":"Cek Gejala","nav.guidance":"Panduan","nav.progress":"Perkembangan","nav.profile":"Profil",
+  "assessment.title":"Penilaian Awal Gejala","assessment.disclaimer":"Hasil penilaian awal ini bersifat informatif dan bukan diagnosis medis.",
+  "assessment.urgent":"Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
+  "assessment.model_unavailable":"Analisis AI sedang tidak tersedia. Ringkasan keluhan Anda tetap tersimpan, dan Anda dapat memilih konsultasi profesional.",
+  "assessment.submit":"Lihat Penilaian Awal","guidance.title":"Panduan Kesehatan Personal","progress.title":"Catatan Perkembangan","consultation.title":"Konsultasi Profesional",
+  "consent.title":"Izin Berbagi Ringkasan","consent.description":"Bagikan ringkasan penilaian awal yang Anda pilih kepada tenaga profesional untuk konsultasi ini.",
+  "nutrition.provider":"Sumber: AmbatuNoutrish","gym.provider":"Sumber: ambatomove",
+  "integration.unavailable":"Informasi dari layanan mitra sedang tidak tersedia. Silakan coba lagi.","integration.not_configured":"Layanan mitra belum terhubung untuk demo ini.",
+  "empty.assessments":"Belum ada penilaian awal yang tersimpan.","empty.monitoring":"Belum ada catatan perkembangan. Mulai dengan catatan pertama Anda."
+}
