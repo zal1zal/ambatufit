@@ -100,3 +100,19 @@ test('MedicationsScreen toggles camera barcode scanner and processes scanned BPO
   await waitFor(() => expect(view.getByText('DBL202600101A1')).toBeTruthy());
 });
 
+test('MedicationsScreen handles cross-user or unauthorized assessment medication access (403/404)', async () => {
+  const err = new Error('Penilaian kesehatan tidak ditemukan atau Anda tidak berwenang.');
+  err.status = 403;
+  ApiService.medications.forAssessment.mockRejectedValue(err);
+  const view = render(
+    <MedicationsScreen
+      navigation={navigation}
+      route={{ name: 'Medications', params: { assessment_id: 'asm-other-user' } }}
+    />,
+  );
+  await waitFor(() =>
+    expect(view.getByText('Akses membutuhkan izin yang sesuai.')).toBeTruthy(),
+  );
+  expect(view.queryByText(/OBAT BEBAS/)).toBeNull();
+});
+

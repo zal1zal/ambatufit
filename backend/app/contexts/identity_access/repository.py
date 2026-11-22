@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from app.db import User, AssessmentShareConsent
+from app.db import User, HealthProfile, RevokedToken, AssessmentShareConsent
 from app.security import hash_password
 
 
@@ -16,18 +16,89 @@ class IdentityRepository:
     def get_user_by_id(self, user_id: str) -> Optional[User]:
         return self.db.query(User).filter(User.id == user_id).first()
 
-    def create_user(self, email: str, password: str, role: str = "user") -> User:
+    def create_user(
+        self,
+        email: str,
+        password: str,
+        role: str = "user",
+        display_name: Optional[str] = None,
+    ) -> User:
+        clean_name = (display_name or "").strip() or None
         user = User(
             id=f"u-{uuid.uuid4().hex[:12]}",
             email=email,
+            display_name=clean_name,
             password_hash=hash_password(password),
             role=role,
+            token_version=1,
             created_at=datetime.utcnow(),
         )
         self.db.add(user)
+        if clean_name:
+            profile = HealthProfile(
+                user_id=user.id,
+                display_name=clean_name,
+                age_years=None,
+                sex_for_model="unknown",
+                health_goal="general_wellbeing",
+                dietary_preferences_json="[]",
+                activity_preferences_json="[]",
+                known_conditions_json="[]",
+            )
+            self.db.add(profile)
         self.db.commit()
         self.db.refresh(user)
         return user
+
+    def update_display_name(self, user_id: str, display_name: Optional[str]) -> Optional[User]:
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return None
+        clean_name = (display_name or "").strip() or None
+        user.display_name = clean_name
+        profile = self.db.query(HealthProfile).filter(HealthProfile.user_id == user_id).first()
+        if profile:
+            profile.display_name = clean_name
+            profile.updated_at = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def update_password_and_bump_token_version(self, user_id: str, new_password: str) -> Optional[User]:
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return None
+        user.password_hash = hash_password(new_password)
+        user.token_version = int(user.token_version or 1) + 1
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def revoke_token(
+        self,
+        jti: str,
+        user_id: str,
+        expires_at: Optional[datetime] = None,
+    ) -> RevokedToken:
+        existing = self.db.query(RevokedToken).filter(RevokedToken.jti == jti).first()
+        if existing:
+            return existing
+        row = RevokedToken(
+            jti=jti,
+            user_id=user_id,
+            revoked_at=datetime.utcnow(),
+            expires_at=expires_at,
+        )
+        self.db.add(row)
+        self.db.commit()
+        self.db.refresh(row)
+        return row
+
+    def is_token_revoked(self, jti: Optional[str]) -> bool:
+        if not jti:
+            return False
+        return self.db.query(RevokedToken).filter(RevokedToken.jti == jti).first() is not None
+
 
     def create_consent(
         self,

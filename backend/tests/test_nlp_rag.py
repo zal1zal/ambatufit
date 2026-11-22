@@ -1,5 +1,6 @@
 from ai.nlp_rag import answer_personalized_rag_query, extract_evidences_from_text
-from ai.inference import inference_engine
+from ai.inference import SymptomInferenceEngine, inference_engine
+from tests.test_failure_modes import _build_minimal_test_bundle
 
 
 def test_flexible_indonesian_complaint_extraction_handles_ddxplus_and_general_wellness():
@@ -19,8 +20,9 @@ def test_flexible_indonesian_complaint_extraction_handles_ddxplus_and_general_we
     assert general["evidence_entries"][0]["evidence_code"] == "E_89"
 
 
-def test_inference_engine_produces_rag_narrative_for_free_text():
-    out = inference_engine.predict(
+def test_inference_engine_produces_rag_narrative_for_free_text(tmp_path):
+    eng = inference_engine if inference_engine.is_loaded else SymptomInferenceEngine(bundle_path=_build_minimal_test_bundle(tmp_path))
+    out = eng.predict(
         age_years=22,
         sex_for_model="unknown",
         evidence_entries=[],

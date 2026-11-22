@@ -363,20 +363,21 @@ class HybridRAGRetriever:
                 except Exception:
                     pass
 
-        # 3. Semantic chunk link boost (only high-confidence semantic hits)
-        self._ensure_index()
-        if self.index.is_ready:
-            try:
-                for cid, sim in self.index.query(qi["expanded_query"], top_k=10):
-                    if sim < 0.50:
-                        continue
-                    with self.store._connect() as conn:
-                        row = conn.execute("SELECT entity_type, entity_id FROM knowledge_chunks WHERE chunk_id = ?", (cid,)).fetchone()
-                        if row and row["entity_type"] == "disease" and row["entity_id"] in by_id:
-                            did = row["entity_id"]
-                            scores[did] = scores.get(did, 0.0) + 0.45 * sim
-            except Exception:
-                pass
+            # 3. Semantic chunk link boost (only when lexical/alias signal exists or very high semantic similarity)
+            self._ensure_index()
+            if self.index.is_ready:
+                try:
+                    for cid, sim in self.index.query(qi["expanded_query"], top_k=10):
+                        if sim < 0.72:
+                            continue
+                        with self.store._connect() as conn:
+                            row = conn.execute("SELECT entity_type, entity_id FROM knowledge_chunks WHERE chunk_id = ?", (cid,)).fetchone()
+                            if row and row["entity_type"] == "disease" and row["entity_id"] in by_id:
+                                did = row["entity_id"]
+                                if did in scores or sim >= 0.85:
+                                    scores[did] = scores.get(did, 0.0) + 0.45 * sim
+                except Exception:
+                    pass
 
         ranked = [
             (did, min(1.0, sc))

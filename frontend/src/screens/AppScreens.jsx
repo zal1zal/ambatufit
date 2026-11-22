@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Text, View, Pressable } from 'react-native';
+import { AccessibilityInfo, Alert, Image, Text, View, Pressable } from 'react-native';
 import { ApiService } from '../services/ApiService';
 import { userMessage } from '../services/apiErrors';
 import { ROUTES } from '../navigation/routeNames';
 import { t } from '../theme/copy';
 import { tokens } from '../theme/tokens';
 import { fontFamilies } from '../theme/fonts';
+import { assets } from '../theme/assets';
 import {
   BackButton,
   CameraBarcodeScanner,
@@ -15,6 +16,9 @@ import {
   FormattedText,
   GuidanceCard,
   HomeButton,
+  MedicationInformationCard,
+  MedicationSafetyNotice,
+  MedicationSourceAttribution,
   PageTitle,
   PrimaryButton,
   ProviderAttribution,
@@ -167,21 +171,50 @@ function Page({ navigation, route, eyebrow, title, subtitle, children }) {
 
 export function LoginScreen({ navigation }) {
   const auth = useAuth();
-  const [email, setEmail] = useState(''),
+  const [mode, setMode] = useState('login'),
+    [email, setEmail] = useState(''),
     [password, setPassword] = useState(''),
+    [displayName, setDisplayName] = useState(''),
     [error, setError] = useState(''),
+    [notice, setNotice] = useState(''),
     [busy, setBusy] = useState(false),
-    [validation, setValidation] = useState({});
+    [validation, setValidation] = useState({}),
+    [reduceMotion, setReduceMotion] = useState(false);
+  useEffect(() => {
+    let active = true;
+    AccessibilityInfo?.isReduceMotionEnabled?.()
+      .then((val) => {
+        if (active && val) setReduceMotion(true);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   const submit = async () => {
     const e = {};
     if (!/^\S+@\S+\.\S+$/.test(email)) e.email = 'Masukkan alamat email yang valid.';
     if (!password) e.password = 'Masukkan kata sandi.';
+    else if (mode === 'register' && password.length < 6) {
+      e.password = 'Kata sandi minimal 6 karakter.';
+    }
     setValidation(e);
     setError('');
+    setNotice('');
     if (Object.keys(e).length) return;
     setBusy(true);
     try {
-      await auth.login(email.trim(), password);
+      const cleanEmail = email.trim();
+      if (mode === 'register') {
+        const cleanName = displayName.trim();
+        await (auth.register
+          ? auth.register(cleanEmail, password, cleanName || undefined)
+          : ApiService.auth.register(cleanEmail, password, cleanName || undefined));
+        setNotice('Akun berhasil didaftarkan. Masuk otomatis ke sesi Anda...');
+        await auth.login(cleanEmail, password);
+      } else {
+        await auth.login(cleanEmail, password);
+      }
     } catch (err) {
       setError(getError(err));
     } finally {
@@ -191,15 +224,36 @@ export function LoginScreen({ navigation }) {
   return (
     <ScreenShell>
       <TechnicalLabel>AMBATUFIT / AUTH.01</TechnicalLabel>
-      <PageTitle title="MASUK" subtitle="Personal Health Intelligence / akses aman" />
-      <Card>
-        <TechnicalLabel>IDENTITY / 01</TechnicalLabel>
-        <Text style={styles.cardTitle}>Selamat datang di AmbatuFit</Text>
-        <Text style={styles.bodySmall}>
-          Masuk untuk mengakses penilaian gejala, panduan personal, dan riwayat kesehatan.
+      <PageTitle
+        title={mode === 'register' ? 'DAFTAR AKUN' : 'MASUK'}
+        subtitle="PERSONAL HEALTH INTELLIGENCE / akses aman"
+      />
+      <Card dark>
+        <Image
+          source={assets.logo}
+          accessibilityLabel="AMBATUFIT PERSONAL HEALTH INTELLIGENCE"
+          resizeMode="contain"
+          style={{ width: '100%', height: 64, alignSelf: 'flex-start' }}
+        />
+        <TechnicalLabel dark>
+          IDENTITY / 01{reduceMotion ? ' • REDUCED MOTION' : ''}
+        </TechnicalLabel>
+        <Text style={[styles.cardTitle, { color: tokens.color.textOnDark }]}>
+          Selamat datang di AmbatuFit
+        </Text>
+        <Text style={[styles.bodySmall, { color: tokens.color.mutedOnDark }]}>
+          Masuk atau daftar akun baru untuk mengakses penilaian gejala, panduan personal, informasi obat edukatif, dan riwayat kesehatan.
         </Text>
       </Card>
       <Card>
+        {mode === 'register' && (
+          <TextField
+            label="Nama tampilan · opsional"
+            value={displayName}
+            onChangeText={setDisplayName}
+            placeholder="Contoh: Budi Santoso"
+          />
+        )}
         <TextField
           label="Alamat email"
           value={email}
@@ -215,12 +269,26 @@ export function LoginScreen({ navigation }) {
           secureTextEntry
           error={validation.password}
         />
+        {notice ? <Text style={styles.bodySmall}>{notice}</Text> : null}
         {error ? (
           <Text accessibilityRole="alert" style={styles.error}>
             {error}
           </Text>
         ) : null}
-        <PrimaryButton title="Masuk" onPress={submit} loading={busy} />
+        <PrimaryButton
+          title={mode === 'register' ? 'Daftar Akun' : 'Masuk'}
+          onPress={submit}
+          loading={busy}
+        />
+        <SecondaryButton
+          title={mode === 'register' ? 'Sudah punya akun? Masuk' : 'Daftar Akun Baru'}
+          onPress={() => {
+            setMode((m) => (m === 'register' ? 'login' : 'register'));
+            setError('');
+            setNotice('');
+            setValidation({});
+          }}
+        />
       </Card>
       <Text style={styles.bodySmall}>
         Akun dibuat melalui layanan AmbatuFit. Demo login tetap memakai autentikasi backend.
@@ -682,12 +750,55 @@ export function AssessmentResultScreen({ navigation, route }) {
             ))}
             <Text style={styles.bodySmall}>{a.disclaimer || t('assessment.disclaimer')}</Text>
           </Card>
-          {status !== 'safety_alert' && (
-            <PrimaryButton
-              title="Cari Tenaga Profesional"
-              onPress={() => navigation.navigate(ROUTES.Professionals, { assessment_id: id })}
+          <Card>
+            <TechnicalLabel>UNDANGAN KONSULTASI KONTEKSTUAL</TechnicalLabel>
+            <Text style={styles.cardTitle}>
+              {status === 'safety_alert' || a.safety?.level === 'urgent'
+                ? 'Tindak lanjut medis setelah penanganan darurat'
+                : a.safety?.level === 'review_recommended' || status === 'model_unavailable'
+                  ? 'Disarankan konsultasi dengan tenaga profesional'
+                  : 'Diskusikan keluhan Anda bersama tenaga profesional'}
+            </Text>
+            <Text style={styles.bodySmall}>
+              {status === 'safety_alert' || a.safety?.level === 'urgent'
+                ? 'Utamakan layanan gawat darurat terlebih dahulu. Setelah kondisi darurat tertangani, Anda dapat menjadwalkan tindak lanjut dengan dokter pada direktori AmbatuFit.'
+                : a.safety?.level === 'review_recommended'
+                  ? 'Aturan keamanan mendeteksi keluhan yang memerlukan peninjauan klinis sebelum memulai aktivitas fisik berat atau swamedikasi.'
+                  : status === 'model_unavailable'
+                    ? 'Karena layanan penilaian otomatis sedang tidak tersedia, Anda dapat langsung berkonsultasi dengan dokter atau ahli gizi dan membagikan ringkasan keluhan ini atas persetujuan Anda.'
+                    : 'Bila keluhan berlangsung lebih dari 3 hari atau Anda membutuhkan panduan nutrisi dan pemulihan terarah, jadwalkan sesi dengan dokter atau ahli gizi.'}
+            </Text>
+            {status !== 'safety_alert' ? (
+              <PrimaryButton
+                title="Cari Tenaga Profesional"
+                onPress={() =>
+                  navigation.navigate(ROUTES.Professionals, {
+                    assessment_id: id,
+                    specialty: 'doctor',
+                  })
+                }
+              />
+            ) : (
+              <SecondaryButton
+                title="Konsultasi Dokter Lanjutan"
+                onPress={() =>
+                  navigation.navigate(ROUTES.Professionals, {
+                    assessment_id: id,
+                    specialty: 'doctor',
+                  })
+                }
+              />
+            )}
+            <SecondaryButton
+              title="Konsultasi Ahli Gizi"
+              onPress={() =>
+                navigation.navigate(ROUTES.Professionals, {
+                  assessment_id: id,
+                  specialty: 'dietitian',
+                })
+              }
             />
-          )}
+          </Card>
           <SecondaryButton
             title="Informasi Obat & Keamanan"
             onPress={() => navigation.navigate(ROUTES.Medications, { assessment_id: id })}
@@ -814,10 +925,23 @@ export function GuidanceScreen({ navigation }) {
         !r.error &&
         items.map((x, i) => <GuidanceCard key={x.id || i} item={x} status={x.readiness} />)}
       {readiness === 'needs_review' && (
-        <SafetyNotice
-          level="review_recommended"
-          message="Aktivitas fisik dapat ditunda sampai keluhan ditinjau oleh tenaga profesional."
-        />
+        <>
+          <SafetyNotice
+            level="review_recommended"
+            message="Aktivitas fisik dapat ditunda sampai keluhan ditinjau oleh tenaga profesional."
+          />
+          <Card>
+            <TechnicalLabel>KONSULTASI KONTEKSTUAL</TechnicalLabel>
+            <Text style={styles.cardTitle}>Tinjau Keluhan Bersama Tenaga Profesional</Text>
+            <Text style={styles.bodySmall}>
+              Riwayat penilaian Anda menunjukkan perlunya peninjauan profesional sebelum menjalankan program olahraga intensitas sedang-berat.
+            </Text>
+            <PrimaryButton
+              title="Konsultasi Dokter / Ahli Gizi"
+              onPress={() => navigation.navigate(ROUTES.Professionals, { specialty: 'doctor' })}
+            />
+          </Card>
+        </>
       )}
       <Card>
         <TechnicalLabel>RENCANA & ASISTEN</TechnicalLabel>
@@ -1059,9 +1183,9 @@ export function MedicationsScreen({ navigation, route }) {
       <DataState loading={loading} error={error} reload={() => load()} />
       {!loading && !error && infoStatus === 'restricted' && (
         <>
-          <SafetyNotice
-            level="urgent"
-            message={data?.message || t('medication.restricted')}
+          <MedicationSafetyNotice
+            status="restricted"
+            message={data?.message || t('medications.restricted')}
           />
           <PrimaryButton
             title="Konsultasi Dokter / Profesional"
@@ -1072,7 +1196,7 @@ export function MedicationsScreen({ navigation, route }) {
       {!loading && !error && infoStatus === 'unavailable' && !productHits.length && !knowledgeLoading && (
         <ScreenState
           title="Informasi obat belum tersedia"
-          message={data?.message || t('medication.unavailable')}
+          message={data?.message || t('medications.unavailable')}
           action="Muat ulang"
           onPress={() => load()}
         />
@@ -1080,29 +1204,20 @@ export function MedicationsScreen({ navigation, route }) {
       {!loading && !error && infoStatus === 'available' && !items.length && !productHits.length && !knowledgeLoading && (
         <ScreenState
           title="Tidak ada hasil cocok"
-          message={data?.message || 'Tidak ada informasi obat yang cocok dengan pencarian Anda.'}
+          message={data?.message || t('medications.empty')}
         />
       )}
       {!loading &&
         !error &&
         infoStatus === 'available' &&
         items.map((item) => (
-          <Pressable
+          <MedicationInformationCard
             key={item.id}
+            item={item}
             onPress={() =>
               navigation.navigate(ROUTES.MedicationDetail, { medication_id: item.id })
             }
-          >
-            <Card>
-              <TechnicalLabel>
-                {item.category === 'obat_bebas_terbatas' ? 'OBAT BEBAS TERBATAS' : 'OBAT BEBAS'}
-              </TechnicalLabel>
-              <Text style={styles.cardTitle}>{item.display_name}</Text>
-              <Text style={styles.bodySmall}>Kandungan aktif: {item.active_ingredient}</Text>
-              <ProviderAttribution>Sumber: {item.source?.title}</ProviderAttribution>
-              <Text style={styles.link}>Lihat peringatan & kontraindikasi ›</Text>
-            </Card>
-          </Pressable>
+          />
         ))}
       {!assessmentId && !knowledgeLoading && productHits.length > 0 && (
         <>
@@ -1272,10 +1387,7 @@ export function MedicationDetailScreen({ navigation, route }) {
             ))}
           </Card>
           <Card>
-            <TechnicalLabel>SUMBER REFERENSI TERVERIFIKASI</TechnicalLabel>
-            <Text style={styles.body}>{med.source?.title}</Text>
-            <Text style={styles.bodySmall}>Ref: {med.source?.reference_id}</Text>
-            <Text style={styles.bodySmall}>Terverifikasi: {med.source?.verified_at}</Text>
+            <MedicationSourceAttribution source={med.source} />
           </Card>
         </>
       )}
@@ -1294,6 +1406,9 @@ export function ProgressScreen({ navigation }) {
   const summaryData = summaryRemote.data;
   const [note, setNote] = useState(''),
     [tags, setTags] = useState(''),
+    [mealName, setMealName] = useState(''),
+    [mealPortions, setMealPortions] = useState('1'),
+    [mealCalories, setMealCalories] = useState(''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   const save = async () => {
@@ -1301,9 +1416,27 @@ export function ProgressScreen({ navigation }) {
       setError('Masukkan catatan singkat sebelum menyimpan.');
       return;
     }
+    const parsedPortions = mealPortions.trim() ? Number(mealPortions) : 1;
+    if (mealName.trim() && (!Number.isFinite(parsedPortions) || parsedPortions <= 0 || parsedPortions > 20)) {
+      setError('Jumlah porsi makanan harus berupa angka antara 0.1 hingga 20.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
+      const mealLogs = mealName.trim()
+        ? [
+            {
+              name: mealName.trim(),
+              portions: parsedPortions,
+              portion_unit: 'porsi',
+              ...(mealCalories.trim() && Number.isFinite(Number(mealCalories)) && Number(mealCalories) >= 0
+                ? { calories_kcal: Number(mealCalories) }
+                : {}),
+              provider_id: 'ambatufit_manual',
+            },
+          ]
+        : [];
       await ApiService.monitoring.create({
         recorded_at: new Date().toISOString(),
         wellbeing_note: note.trim(),
@@ -1311,9 +1444,13 @@ export function ProgressScreen({ navigation }) {
           .split(',')
           .map((x) => x.trim())
           .filter(Boolean),
+        ...(mealLogs.length ? { meal_logs: mealLogs } : {}),
       });
       setNote('');
       setTags('');
+      setMealName('');
+      setMealPortions('1');
+      setMealCalories('');
       await r.reload();
     } catch (e) {
       setError(getError(e));
@@ -1366,6 +1503,34 @@ export function ProgressScreen({ navigation }) {
           onChangeText={setTags}
           placeholder="Contoh: membaik, batuk ringan"
         />
+        <TextField
+          label="Catatan konsumsi makanan · opsional"
+          value={mealName}
+          onChangeText={setMealName}
+          placeholder="Contoh: Nasi merah, dada ayam panggang & sayur bayam"
+        />
+        {mealName.trim() ? (
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <TextField
+                label="Jumlah porsi"
+                value={mealPortions}
+                onChangeText={setMealPortions}
+                keyboardType="numeric"
+                placeholder="1"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <TextField
+                label="Estimasi kkal · opsional"
+                value={mealCalories}
+                onChangeText={setMealCalories}
+                keyboardType="numeric"
+                placeholder="450"
+              />
+            </View>
+          </View>
+        ) : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <PrimaryButton title="Simpan catatan" onPress={save} loading={busy} />
       </Card>
@@ -1379,12 +1544,17 @@ export function ProgressScreen({ navigation }) {
         <Card>
           <TechnicalLabel>TABEL RIWAYAT PERKEMBANGAN</TechnicalLabel>
           <SimpleTable
-            headers={['Waktu Catat', 'Catatan Kondisi', 'Gejala']}
-            rows={items.slice(0, 10).map((x) => [
-              formatIndonesianDate(x.recorded_at),
-              x.wellbeing_note,
-              x.symptom_tags?.length ? x.symptom_tags.join(', ') : '—',
-            ])}
+            headers={['Waktu Catat', 'Catatan Kondisi & Konsumsi', 'Gejala']}
+            rows={items.slice(0, 10).map((x) => {
+              const mealsText = Array.isArray(x.meal_logs) && x.meal_logs.length
+                ? ` · Konsumsi: ${x.meal_logs.map((m) => `${m.name} (${m.portions || 1} ${m.portion_unit || 'porsi'}${m.calories_kcal ? `, ${m.calories_kcal} kkal` : ''})`).join(', ')}`
+                : '';
+              return [
+                formatIndonesianDate(x.recorded_at),
+                `${x.wellbeing_note}${mealsText}`,
+                x.symptom_tags?.length ? x.symptom_tags.join(', ') : '—',
+              ];
+            })}
           />
         </Card>
       )}
@@ -1396,6 +1566,39 @@ export function ProfileScreen({ navigation }) {
   const r = useRemote(() => ApiService.profile.get(), [], navigation);
   const auth = useAuth();
   const p = r.data || {};
+  const [currentPassword, setCurrentPassword] = useState(''),
+    [newPassword, setNewPassword] = useState(''),
+    [pwdOpen, setPwdOpen] = useState(false),
+    [pwdBusy, setPwdBusy] = useState(false),
+    [pwdError, setPwdError] = useState(''),
+    [pwdNotice, setPwdNotice] = useState('');
+  const handlePasswordChange = async () => {
+    setPwdError('');
+    setPwdNotice('');
+    if (!currentPassword || currentPassword.length < 6) {
+      setPwdError('Masukkan kata sandi saat ini (minimal 6 karakter).');
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      setPwdError('Kata sandi baru minimal 6 karakter.');
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setPwdError('Kata sandi baru harus berbeda dari kata sandi saat ini.');
+      return;
+    }
+    setPwdBusy(true);
+    try {
+      const res = await ApiService.auth.changePassword(currentPassword, newPassword);
+      setPwdNotice(res?.message || 'Kata sandi berhasil diperbarui.');
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch (e) {
+      setPwdError(getError(e));
+    } finally {
+      setPwdBusy(false);
+    }
+  };
   return (
     <Page
       navigation={navigation}
@@ -1409,14 +1612,50 @@ export function ProfileScreen({ navigation }) {
           <Card>
             <TechnicalLabel>IDENTITY / PRIVATE</TechnicalLabel>
             <Text style={styles.cardTitle}>
-              {p.display_name || p.name || auth.user?.email || 'Akun AmbatuFit'}
+              {p.display_name || auth.user?.display_name || p.name || auth.user?.email || 'Akun AmbatuFit'}
             </Text>
+            {auth.user?.email && (p.display_name || auth.user?.display_name) ? (
+              <Text style={styles.bodySmall}>{auth.user.email}</Text>
+            ) : null}
             <Text style={styles.bodySmall}>{p.health_goal || 'Tujuan kesehatan belum diatur'}</Text>
           </Card>
           <PrimaryButton
             title="Ubah profil kesehatan"
             onPress={() => navigation.navigate(ROUTES.HealthProfileEdit)}
           />
+          <SecondaryButton
+            title={pwdOpen ? 'Tutup Ubah Kata Sandi' : 'Ubah kata sandi akun'}
+            onPress={() => {
+              setPwdOpen((v) => !v);
+              setPwdError('');
+              setPwdNotice('');
+            }}
+          />
+          {pwdOpen && (
+            <Card>
+              <TechnicalLabel>SECURITY / PASSWORD</TechnicalLabel>
+              <Text style={styles.cardTitle}>Perbarui Kata Sandi</Text>
+              <TextField
+                label="Kata sandi saat ini"
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                secureTextEntry
+              />
+              <TextField
+                label="Kata sandi baru (minimal 6 karakter)"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry
+              />
+              {pwdError ? <Text style={styles.error}>{pwdError}</Text> : null}
+              {pwdNotice ? <Text style={styles.bodySmall}>{pwdNotice}</Text> : null}
+              <PrimaryButton
+                title="Simpan Kata Sandi Baru"
+                onPress={handlePasswordChange}
+                loading={pwdBusy}
+              />
+            </Card>
+          )}
           <SecondaryButton
             title="Riwayat penilaian"
             onPress={() => navigation.navigate(ROUTES.AssessmentHistory)}
@@ -1442,7 +1681,8 @@ export function ProfileScreen({ navigation }) {
 
 export function HealthProfileEditScreen({ navigation }) {
   const r = useRemote(() => ApiService.profile.get(), [], navigation);
-  const [goal, setGoal] = useState(''),
+  const [displayName, setDisplayName] = useState(''),
+    [goal, setGoal] = useState(''),
     [age, setAge] = useState(''),
     [sex, setSex] = useState(''),
     [dietaryPrefs, setDietaryPrefs] = useState([]),
@@ -1452,6 +1692,7 @@ export function HealthProfileEditScreen({ navigation }) {
     [error, setError] = useState('');
   useEffect(() => {
     if (r.data) {
+      setDisplayName(r.data.display_name || '');
       setGoal(r.data.health_goal || '');
       setAge(r.data.age_years == null ? '' : String(r.data.age_years));
       setSex(r.data.sex_for_model || '');
@@ -1476,6 +1717,7 @@ export function HealthProfileEditScreen({ navigation }) {
     setBusy(true);
     try {
       await ApiService.profile.update({
+        display_name: displayName.trim() || null,
         health_goal: goal,
         age_years: age ? Number(age) : null,
         ...(sex ? { sex_for_model: sex } : {}),
@@ -1498,6 +1740,12 @@ export function HealthProfileEditScreen({ navigation }) {
       subtitle="Informasi opsional dapat diperbarui kapan saja untuk menyesuaikan panduan Anda"
     >
       <DataState loading={r.loading} error={r.error} reload={r.reload} />
+      <TextField
+        label="Nama tampilan · opsional"
+        value={displayName}
+        onChangeText={setDisplayName}
+        placeholder="Contoh: Budi Santoso"
+      />
       <Text style={styles.label}>Tujuan kesehatan</Text>
       {[
         ['general_wellbeing', 'Kesejahteraan umum'],
@@ -1677,7 +1925,12 @@ export const NutritionScreen = (props) => <PartnerScreen {...props} type="nutrit
 export const GymsScreen = (props) => <PartnerScreen {...props} type="gym" />;
 
 export function ProfessionalsScreen({ navigation, route }) {
-  const [specialty, setSpecialty] = useState('');
+  const [specialty, setSpecialty] = useState(() => route?.params?.specialty || '');
+  useEffect(() => {
+    if (route?.params?.specialty !== undefined) {
+      setSpecialty(route.params.specialty);
+    }
+  }, [route?.params?.specialty]);
   const r = useRemote(() => ApiService.professionals.list(specialty), [specialty], navigation);
   const items = records(r.data);
   return (
@@ -1762,10 +2015,10 @@ export function ProfessionalDetailScreen({ navigation, route }) {
               >
                 <Text
                   style={{
-                    fontFamily: fontFamilies.monoMedium,
+                    fontFamily: fontFamilies.mono,
                     fontSize: 11,
                     letterSpacing: 1,
-                    color: tokens.color.accentTeal,
+                    color: tokens.color.accent,
                   }}
                 >
                   {parts.day}
@@ -1773,14 +2026,14 @@ export function ProfessionalDetailScreen({ navigation, route }) {
                 <Text style={{ fontFamily: fontFamilies.bodySemiBold, fontSize: 15, color: tokens.color.text }}>
                   {parts.date}
                 </Text>
-                <Text style={{ fontFamily: fontFamilies.body, fontSize: 13, color: tokens.color.muted }}>
+                <Text style={{ fontFamily: fontFamilies.body, fontSize: 13, color: tokens.color.textMuted }}>
                   {parts.time || x.label || x.id}
                 </Text>
                 <Text
                   style={{
                     fontFamily: fontFamilies.bodySemiBold,
                     fontSize: 12,
-                    color: isSelected ? tokens.color.warning : tokens.color.primaryDark,
+                    color: isSelected ? tokens.color.warning : tokens.color.text,
                     marginTop: 2,
                   }}
                 >
@@ -2482,7 +2735,7 @@ export function PersonalizedPlanScreen({ navigation, route }) {
                   style={{
                     backgroundColor: tokens.color.warningBackground,
                     borderLeftWidth: 4,
-                    borderColor: tokens.color.primaryDark,
+                    borderColor: tokens.color.primaryStrong,
                     padding: 12,
                     borderRadius: tokens.radius.sm,
                     marginVertical: 4,
@@ -2542,6 +2795,26 @@ export function PersonalizedPlanScreen({ navigation, route }) {
 
             <Card>
               <TechnicalLabel>4. CATATAN NUTRISI & OLAHRAGA</TechnicalLabel>
+              {current.nutrition?.targets ? (
+                <>
+                  <Text style={styles.cardTitle}>Target Gizi & Porsi Harian (AmbatuFit)</Text>
+                  <SimpleTable
+                    headers={['Komponen Gizi Harian', 'Target Terstruktur']}
+                    rows={[
+                      ['Energi Harian', `${current.nutrition.targets.daily_calories_kcal} kkal`],
+                      ['Protein', `${current.nutrition.targets.protein_g} g`],
+                      ['Karbohidrat', `${current.nutrition.targets.carbs_g} g`],
+                      ['Lemak', `${current.nutrition.targets.fat_g} g`],
+                      ['Frekuensi Makan', `${current.nutrition.targets.meals_per_day} kali / hari`],
+                    ]}
+                  />
+                  {(current.nutrition.targets.portion_guide || []).map((pg, idx) => (
+                    <Text key={`pg-${idx}`} style={styles.bodySmall}>
+                      • Panduan porsi: {pg}
+                    </Text>
+                  ))}
+                </>
+              ) : null}
               {(current.nutrition?.guidance_notes || []).map((n, i) => (
                 <Text key={`n${i}`} style={styles.bodySmall}>
                   • {n}
@@ -2567,11 +2840,17 @@ export function PersonalizedPlanScreen({ navigation, route }) {
             <Card>
               <TechnicalLabel>5. PERHATIAN KESELAMATAN</TechnicalLabel>
               {(current.safety_notes || []).length > 0 ? (
-                current.safety_notes.map((n, i) => (
-                  <Text key={i} style={styles.error}>
-                    • {n}
-                  </Text>
-                ))
+                <>
+                  {current.safety_notes.map((n, i) => (
+                    <Text key={i} style={styles.error}>
+                      • {n}
+                    </Text>
+                  ))}
+                  <SecondaryButton
+                    title="Konsultasi Tenaga Profesional"
+                    onPress={() => navigation.navigate(ROUTES.Professionals, { specialty: 'doctor' })}
+                  />
+                </>
               ) : (
                 <Text style={styles.bodySmall}>
                   Tidak ditemukan keluhan berbahaya; jalankan panduan harian sesuai kemampuan tubuh Anda.

@@ -25,6 +25,100 @@ def test_b01_valid_auth_login_and_me(client, demo_user):
     assert me_res.json()["id"] == demo_user.id
 
 
+def test_register_display_name_account_update_password_change_and_logout_revocation(client):
+    # 1. Register with optional display_name
+    reg_res = client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "budi.baru@ambatufit.local",
+            "password": "InitialPass123!",
+            "display_name": "Budi Santoso",
+        },
+    )
+    assert reg_res.status_code == 201
+    reg_user = reg_res.json()
+    assert reg_user["email"] == "budi.baru@ambatufit.local"
+    assert reg_user["display_name"] == "Budi Santoso"
+
+    # 2. Login and verify display_name in /auth/me and /profile
+    login_res = client.post(
+        "/api/v1/auth/login",
+        json={"email": "budi.baru@ambatufit.local", "password": "InitialPass123!"},
+    )
+    assert login_res.status_code == 200
+    token_1 = login_res.json()["access_token"]
+    headers_1 = {"Authorization": f"Bearer {token_1}"}
+
+    me_res = client.get("/api/v1/auth/me", headers=headers_1)
+    assert me_res.status_code == 200
+    assert me_res.json()["display_name"] == "Budi Santoso"
+
+    prof_res = client.get("/api/v1/profile", headers=headers_1)
+    assert prof_res.status_code == 200
+    assert prof_res.json()["display_name"] == "Budi Santoso"
+
+    # 3. Edit display_name via PUT /auth/me and PUT /profile
+    upd_me = client.put("/api/v1/auth/me", headers=headers_1, json={"display_name": "Budi S. Pratama"})
+    assert upd_me.status_code == 200
+    assert upd_me.json()["display_name"] == "Budi S. Pratama"
+    assert client.get("/api/v1/profile", headers=headers_1).json()["display_name"] == "Budi S. Pratama"
+
+    upd_prof = client.put(
+        "/api/v1/profile",
+        headers=headers_1,
+        json={"health_goal": "balanced_nutrition", "display_name": "Budi Santoso Pratama"},
+    )
+    assert upd_prof.status_code == 200
+    assert upd_prof.json()["display_name"] == "Budi Santoso Pratama"
+    assert client.get("/api/v1/auth/me", headers=headers_1).json()["display_name"] == "Budi Santoso Pratama"
+
+    # 4. Change password -> invalidates current token_1 and requires new password
+    wrong_pwd = client.post(
+        "/api/v1/auth/change-password",
+        headers=headers_1,
+        json={"current_password": "WrongPassword!", "new_password": "UpdatedPass456!"},
+    )
+    assert wrong_pwd.status_code == 400
+
+    chg_res = client.post(
+        "/api/v1/auth/change-password",
+        headers=headers_1,
+        json={"current_password": "InitialPass123!", "new_password": "UpdatedPass456!"},
+    )
+    assert chg_res.status_code == 200
+    assert chg_res.json()["status"] == "password_updated"
+
+    # Old token_1 is now revoked (both by jti and bumped token_version)
+    assert client.get("/api/v1/auth/me", headers=headers_1).status_code == 401
+    # Old password no longer works
+    assert (
+        client.post(
+            "/api/v1/auth/login",
+            json={"email": "budi.baru@ambatufit.local", "password": "InitialPass123!"},
+        ).status_code
+        == 401
+    )
+
+    # 5. Login with new password -> logout revokes token_2 on server side
+    login_2 = client.post(
+        "/api/v1/auth/login",
+        json={"email": "budi.baru@ambatufit.local", "password": "UpdatedPass456!"},
+    )
+    assert login_2.status_code == 200
+    token_2 = login_2.json()["access_token"]
+    headers_2 = {"Authorization": f"Bearer {token_2}"}
+    assert client.get("/api/v1/auth/me", headers=headers_2).status_code == 200
+
+    logout_res = client.post("/api/v1/auth/logout", headers=headers_2)
+    assert logout_res.status_code == 200
+    assert logout_res.json()["revoked"] is True
+
+    # Subsequent calls with token_2 MUST fail with 401
+    assert client.get("/api/v1/auth/me", headers=headers_2).status_code == 401
+    assert client.get("/api/v1/profile", headers=headers_2).status_code == 401
+
+
+
 def test_b02_unauthorized_profile_request(client):
     res = client.get("/api/v1/profile")
     assert res.status_code == 401

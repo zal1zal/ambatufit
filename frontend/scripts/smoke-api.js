@@ -41,7 +41,12 @@ async function main() {
   assert.equal(guidance.provider_status.ambatunoutrish, 'not_configured');
   assert.equal(guidance.provider_status.ambatumove, 'not_configured');
   const medSearch = await api.medications.search({ query: 'demam' });
-  assert.equal(medSearch.information_status, 'unavailable');
+  assert(['available', 'unavailable'].includes(medSearch.information_status));
+  if (medSearch.information_status === 'available' && medSearch.items.length > 0) {
+    const medDetail = await api.medications.get(medSearch.items[0].id);
+    assert.equal(medDetail.id, medSearch.items[0].id);
+    assert(['obat_bebas', 'obat_bebas_terbatas'].includes(medDetail.category));
+  }
   const medAsm = await api.medications.forAssessment(result.id);
   assert.equal(medAsm.information_status, 'unavailable');
   const capabilities = await api.system.capabilities();

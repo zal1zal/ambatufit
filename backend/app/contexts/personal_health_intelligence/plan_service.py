@@ -236,6 +236,46 @@ def _select_recovery_protocol(
     }
 
 
+def _compute_structured_nutrition_targets(
+    goal: str,
+    dietary_preferences: List[str],
+    recovery_proto: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    prefs = set(dietary_preferences or [])
+    if goal == "muscle_gain" or "high_protein" in prefs:
+        kcal, prot, carbs, fat = 2350, 110, 280, 70
+    elif goal == "active_lifestyle":
+        kcal, prot, carbs, fat = 2200, 85, 275, 65
+    elif goal == "balanced_nutrition":
+        kcal, prot, carbs, fat = 2000, 75, 250, 60
+    else:
+        kcal, prot, carbs, fat = 2000, 65, 260, 60
+
+    meals_per_day = 5 if (recovery_proto and recovery_proto.get("key") == "lambung_gerd") or "gastric_friendly" in prefs else 3
+    portion_guide = [
+        "1/2 piring sayur dan buah segar (serat, vitamin, mineral)",
+        "1/4 piring lauk berprotein (ikan, ayam tanpa kulit, telur, tempe, atau tahu)",
+        "1/4 piring karbohidrat kompleks (nasi merah/putih terukur, kentang, atau oatmeal)",
+    ]
+    if "low_salt" in prefs:
+        portion_guide.append("Batasi garam tambahan (< 1 sendok teh/hari) dan hindari makanan olahan tinggi natrium.")
+    if "low_sugar" in prefs:
+        portion_guide.append("Hindari minuman manis kemasan; utamakan air putih minimal 8 gelas/hari.")
+    if meals_per_day == 5:
+        portion_guide.append("Bagi menjadi 3 makan utama porsi sedang + 2 selingan ringan ramah lambung.")
+
+    return {
+        "daily_calories_kcal": kcal,
+        "protein_g": prot,
+        "carbs_g": carbs,
+        "fat_g": fat,
+        "meals_per_day": meals_per_day,
+        "portion_guide": portion_guide,
+        "data_owner": "ambatufit:personal_health_intelligence",
+        "master_food_provider": "ambatunoutrish",
+    }
+
+
 def _utc_now():
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -470,9 +510,15 @@ class PlanService:
             profile_snapshot["recovery_focus_title"] = recovery_proto["title"]
             profile_snapshot["recovery_focus"] = recovery_proto["focus"]
             profile_snapshot["daily_schedule"] = recovery_proto["daily_schedule"]
+        nutr_targets = _compute_structured_nutrition_targets(
+            goal=goal,
+            dietary_preferences=profile.dietary_preferences,
+            recovery_proto=recovery_proto,
+        )
         nutr_section = {
             "provider": "ambatunoutrish",
             "provider_status": food_status,
+            "targets": nutr_targets,
             "items": foods,
             "guidance_notes": nutr_notes,
         }

@@ -134,6 +134,7 @@ class HealthService:
         profile = self.repo.get_or_create_profile(user_id)
         return HealthProfileDTO(
             user_id=profile.user_id,
+            display_name=profile.display_name,
             age_years=profile.age_years,
             sex_for_model=profile.sex_for_model,
             health_goal=profile.health_goal,
@@ -147,6 +148,7 @@ class HealthService:
         profile = self.repo.update_profile(user_id, dto)
         return HealthProfileDTO(
             user_id=profile.user_id,
+            display_name=profile.display_name,
             age_years=profile.age_years,
             sex_for_model=profile.sex_for_model,
             health_goal=profile.health_goal,
@@ -446,6 +448,7 @@ class HealthService:
             recorded_at=entry.recorded_at,
             wellbeing_note=entry.wellbeing_note,
             symptom_tags=json.loads(entry.symptom_tags_json or "[]"),
+            meal_logs=json.loads(entry.meal_logs_json or "[]"),
         )
 
     def list_monitoring_entries(self, user_id: str, limit: int = 20, offset: int = 0) -> Tuple[List[MonitoringEntryResponse], int]:
@@ -457,6 +460,7 @@ class HealthService:
                 recorded_at=e.recorded_at,
                 wellbeing_note=e.wellbeing_note,
                 symptom_tags=json.loads(e.symptom_tags_json or "[]"),
+                meal_logs=json.loads(e.meal_logs_json or "[]"),
             )
             for e in items
         ]

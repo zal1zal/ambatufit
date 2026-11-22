@@ -6,6 +6,7 @@ from app.schemas.base import ApiModel as BaseModel
 
 class HealthProfileDTO(BaseModel):
     user_id: Optional[str] = None
+    display_name: Optional[str] = Field(default=None, max_length=128)
     age_years: Optional[int] = Field(default=None, ge=0, le=130, strict=True)
     sex_for_model: Literal['M', 'F', 'unknown'] = "unknown"
     health_goal: Literal['general_wellbeing', 'balanced_nutrition', 'active_lifestyle', 'muscle_gain'] = "general_wellbeing"
@@ -94,10 +95,23 @@ class GuidanceResponse(BaseModel):
     provider_status: Dict[str, Literal['available', 'unavailable', 'not_configured']]
 
 
+class MealPortionLogItem(BaseModel):
+    food_id: Optional[str] = Field(default=None, max_length=64)
+    name: str = Field(min_length=1, max_length=160)
+    portions: float = Field(default=1.0, gt=0, le=20)
+    portion_unit: str = Field(default="porsi", max_length=40)
+    calories_kcal: Optional[float] = Field(default=None, ge=0)
+    protein_g: Optional[float] = Field(default=None, ge=0)
+    carbs_g: Optional[float] = Field(default=None, ge=0)
+    fat_g: Optional[float] = Field(default=None, ge=0)
+    provider_id: Literal['ambatunoutrish', 'ambatufit_manual'] = "ambatufit_manual"
+
+
 class MonitoringEntryRequest(BaseModel):
     recorded_at: AwareDatetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     wellbeing_note: str = Field(min_length=1, max_length=2000)
     symptom_tags: List[str] = Field(default_factory=list)
+    meal_logs: List[MealPortionLogItem] = Field(default_factory=list)
 
 
 class MonitoringEntryResponse(BaseModel):
@@ -106,6 +120,7 @@ class MonitoringEntryResponse(BaseModel):
     recorded_at: datetime
     wellbeing_note: str
     symptom_tags: List[str]
+    meal_logs: List[MealPortionLogItem] = Field(default_factory=list)
 
 
 class CapabilityResponse(BaseModel):

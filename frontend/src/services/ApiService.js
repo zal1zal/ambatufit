@@ -7,6 +7,11 @@ import {
   evidenceSchema,
   monitoringInputSchema,
   profileUpdateSchema,
+  registerInputSchema,
+  accountUpdateInputSchema,
+  passwordChangeInputSchema,
+  passwordChangeResponseSchema,
+  logoutResponseSchema,
   listSchema, userSchema, loginSchema, profileSchema, assessmentListItemSchema,
   guidanceSchema, monitoringSchema, medicationDetailSchema, medicationInformationSchema,
   professionalSchema, slotSchema, bookingSchema,
@@ -139,12 +144,47 @@ function validateResponse(schema, value) {
 }
 export const ApiService = {
   auth: {
+    register: (email, password, displayName) =>
+      checked(
+        userSchema,
+        request({
+          path: '/auth/register',
+          method: 'POST',
+          body: validate(registerInputSchema, {
+            email,
+            password,
+            ...(displayName !== undefined ? { display_name: displayName } : {}),
+          }),
+          auth: false,
+        }),
+      ),
     login: async (email, password) => {
       const data = await checked(loginSchema, request({ path: '/auth/login', method: 'POST', body: { email, password }, auth: false }));
       if (data?.access_token) await AuthSession.set(data.access_token);
       return data;
     },
     me: () => checked(userSchema, core('/auth/me')),
+    updateAccount: (payload) =>
+      checked(userSchema, core('/auth/me', 'PUT', validate(accountUpdateInputSchema, payload))),
+    changePassword: (currentPassword, newPassword) =>
+      checked(
+        passwordChangeResponseSchema,
+        core(
+          '/auth/change-password',
+          'POST',
+          validate(passwordChangeInputSchema, {
+            current_password: currentPassword,
+            new_password: newPassword,
+          }),
+        ),
+      ),
+    logout: async () => {
+      try {
+        return await checked(logoutResponseSchema, core('/auth/logout', 'POST'));
+      } finally {
+        await AuthSession.clear();
+      }
+    },
   },
   profile: {
     get: () => checked(profileSchema, core('/profile')),

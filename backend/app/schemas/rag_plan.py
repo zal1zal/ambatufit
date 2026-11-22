@@ -134,9 +134,21 @@ class PlanReviseRequest(BaseModel):
     city: Optional[str] = Field(default=None, max_length=120)
 
 
+class StructuredNutritionTargetDTO(BaseModel):
+    daily_calories_kcal: int = Field(default=2000, ge=1000, le=5000)
+    protein_g: int = Field(default=65, ge=20, le=350)
+    carbs_g: int = Field(default=260, ge=50, le=700)
+    fat_g: int = Field(default=60, ge=20, le=250)
+    meals_per_day: int = Field(default=3, ge=2, le=6)
+    portion_guide: List[str] = Field(default_factory=list)
+    data_owner: str = "ambatufit:personal_health_intelligence"
+    master_food_provider: str = "ambatunoutrish"
+
+
 class PlanSectionNutritionDTO(BaseModel):
     provider: str = "ambatunoutrish"
     provider_status: Literal["available", "unavailable", "not_configured"]
+    targets: Optional[StructuredNutritionTargetDTO] = None
     items: List[Dict[str, Any]] = Field(default_factory=list)
     guidance_notes: List[str] = Field(default_factory=list)
 

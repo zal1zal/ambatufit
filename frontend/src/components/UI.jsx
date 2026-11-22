@@ -510,6 +510,48 @@ export function ProfessionalCard({ item, onPress }) {
 export function ProviderAttribution({ children }) {
   return <Text style={styles.tech}>{children}</Text>;
 }
+export function MedicationSourceAttribution({ source }) {
+  if (!source || !source.reference_id || !source.title || !source.verified_at) return null;
+  return (
+    <View style={{ gap: 2, marginTop: 4 }}>
+      <TechnicalLabel>SUMBER REFERENSI TERVERIFIKASI</TechnicalLabel>
+      <Text style={styles.body}>{source.title}</Text>
+      <Text style={styles.bodySmall}>Ref: {source.reference_id}</Text>
+      {source.url ? <Text style={styles.bodySmall}>URL: {source.url}</Text> : null}
+      <Text style={styles.bodySmall}>Terverifikasi: {source.verified_at}</Text>
+    </View>
+  );
+}
+export function MedicationSafetyNotice({ status = 'informational', message }) {
+  const isRestricted = status === 'restricted';
+  return (
+    <SafetyNotice
+      level={isRestricted ? 'urgent' : 'review_recommended'}
+      message={message}
+    />
+  );
+}
+export function MedicationInformationCard({ item, onPress }) {
+  if (!item || !item.source?.reference_id) return null;
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress}>
+      <Card>
+        <TechnicalLabel>
+          {item.category === 'obat_bebas_terbatas' ? 'OBAT BEBAS TERBATAS' : 'OBAT BEBAS'}
+        </TechnicalLabel>
+        <Text style={styles.cardTitle}>{item.display_name}</Text>
+        <Text style={styles.bodySmall}>Kandungan aktif: {item.active_ingredient}</Text>
+        {Array.isArray(item.general_indications) && item.general_indications.length > 0 ? (
+          <Text style={styles.bodySmall}>
+            Indikasi umum: {item.general_indications.join(', ')}
+          </Text>
+        ) : null}
+        <ProviderAttribution>Sumber: {item.source?.title}</ProviderAttribution>
+        <Text style={styles.link}>Lihat peringatan & kontraindikasi ›</Text>
+      </Card>
+    </Pressable>
+  );
+}
 export function ConsentToggle({ value, onChange }) {
   return (
     <Pressable

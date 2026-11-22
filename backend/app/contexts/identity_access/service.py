@@ -8,11 +8,33 @@ from app.db import get_db, User, Assessment, Booking
 from app.config import settings
 from app.security import verify_password, create_access_token, decode_access_token
 from app.contexts.identity_access.repository import IdentityRepository
-from app.schemas.auth import UserDTO, TokenResponse, RegisterRequest, LoginRequest
+from app.schemas.auth import (
+    UserDTO,
+    TokenResponse,
+    RegisterRequest,
+    LoginRequest,
+    AccountUpdateRequest,
+    PasswordChangeRequest,
+    PasswordChangeResponse,
+    LogoutResponse,
+)
 from app.schemas.consultation import ConsentRequest, ConsentResponse
 
 security_bearer = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def _user_to_dto(user: User) -> UserDTO:
+    display_name = user.display_name
+    if not display_name and getattr(user, "profile", None) is not None:
+        display_name = user.profile.display_name
+    return UserDTO(
+        id=user.id,
+        email=user.email,
+        role=user.role,
+        display_name=display_name,
+        created_at=user.created_at,
+    )
 
 
 def get_current_user(
@@ -32,11 +54,23 @@ def get_current_user(
         )
     user_id = payload.get("sub")
     repo = IdentityRepository(db)
+    if repo.is_token_revoked(payload.get("jti")):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sesi telah berakhir atau dicabut. Silakan masuk kembali.",
+        )
     user = repo.get_user_by_id(user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Pengguna tidak ditemukan.",
+        )
+    token_ver = int(payload.get("tv", 1))
+    user_ver = int(user.token_version or 1)
+    if token_ver < user_ver:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sesi tidak lagi berlaku karena kata sandi atau keamanan akun telah diperbarui.",
         )
     return user
 
@@ -75,29 +109,91 @@ class IdentityService:
         self.repo = IdentityRepository(db)
 
     def register(self, req: RegisterRequest, role: str = "user") -> UserDTO:
-        existing = self.repo.get_user_by_email(req.email)
+        email = req.email.strip().lower()
+        if "@" not in email or "." not in email.split("@")[-1]:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Format alamat email tidak valid.",
+            )
+        existing = self.repo.get_user_by_email(email) or self.repo.get_user_by_email(req.email)
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email sudah terdaftar dalam sistem.",
             )
-        user = self.repo.create_user(email=req.email, password=req.password, role=role)
-        return UserDTO(id=user.id, email=user.email, role=user.role, created_at=user.created_at)
+        user = self.repo.create_user(
+            email=email,
+            password=req.password,
+            role=role,
+            display_name=req.display_name,
+        )
+        return _user_to_dto(user)
 
     def login(self, req: LoginRequest) -> TokenResponse:
-        user = self.repo.get_user_by_email(req.email)
+        email = req.email.strip()
+        user = self.repo.get_user_by_email(email) or self.repo.get_user_by_email(email.lower())
         if not user or not verify_password(req.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Email atau kata sandi tidak sesuai.",
             )
-        token = create_access_token(user_id=user.id, role=user.role, email=user.email)
+        token = create_access_token(
+            user_id=user.id,
+            role=user.role,
+            email=user.email,
+            token_version=int(user.token_version or 1),
+        )
         return TokenResponse(
             access_token=token,
             token_type="bearer",
             expires_in=settings.JWT_TTL_MINUTES * 60,
-            user=UserDTO(id=user.id, email=user.email, role=user.role, created_at=user.created_at),
+            user=_user_to_dto(user),
         )
+
+    def update_account(self, user_id: str, req: AccountUpdateRequest) -> UserDTO:
+        user = self.repo.update_display_name(user_id, req.display_name)
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pengguna tidak ditemukan.")
+        return _user_to_dto(user)
+
+    def change_password(
+        self,
+        user: User,
+        req: PasswordChangeRequest,
+        raw_token: Optional[str] = None,
+    ) -> PasswordChangeResponse:
+        if not verify_password(req.current_password, user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Kata sandi saat ini tidak sesuai.",
+            )
+        if req.current_password == req.new_password:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Kata sandi baru harus berbeda dari kata sandi saat ini.",
+            )
+        self.repo.update_password_and_bump_token_version(user.id, req.new_password)
+        if raw_token:
+            payload = decode_access_token(raw_token) or {}
+            jti = payload.get("jti")
+            if jti:
+                exp_ts = payload.get("exp")
+                exp_dt = datetime.utcfromtimestamp(exp_ts) if isinstance(exp_ts, (int, float)) else None
+                self.repo.revoke_token(jti=jti, user_id=user.id, expires_at=exp_dt)
+        return PasswordChangeResponse()
+
+    def logout(self, user: User, raw_token: Optional[str]) -> LogoutResponse:
+        payload = decode_access_token(raw_token) if raw_token else None
+        jti = (payload or {}).get("jti")
+        if jti:
+            exp_ts = payload.get("exp")
+            exp_dt = datetime.utcfromtimestamp(exp_ts) if isinstance(exp_ts, (int, float)) else None
+            self.repo.revoke_token(jti=jti, user_id=user.id, expires_at=exp_dt)
+        else:
+            user.token_version = int(user.token_version or 1) + 1
+            self.db.commit()
+        return LogoutResponse()
+
 
     def create_consent(self, user_id: str, req: ConsentRequest) -> ConsentResponse:
         assessment = self.db.get(Assessment, req.assessment_id)

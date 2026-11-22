@@ -164,5 +164,7 @@ Layanan berikut bersifat internal / off-STB dan **bukan** API publik untuk dikon
 
 ## Dokumentasi Lanjutan
 
+- Dokumentasi lengkap integrasi publik & Partner API: [`backend/API.md`](backend/API.md)
+- Laporan verifikasi endpoint publik & Cloudflare Tunnel: [`backend/reports/public-api-verification.md`](backend/reports/public-api-verification.md)
 - Panduan setup & deployment STB backend: [`backend/README.md`](backend/README.md)
 - Contoh koleksi request HTTP: [`backend/api.http`](backend/api.http)

@@ -1,18 +1,24 @@
-# Screen specifications
+# Screen Specifications (18 Canonical Guide 04 Route IDs)
 
-Figma baseline: 390×844, 16px horizontal inset, 8px grid, 44px minimum touch targets, signal rail, mono eyebrow, Barlow Condensed page title, off-white surface. Tabs use a 96px bar and 14px labels.
+Figma baseline: `390×844` (responsive checks for `360×800` and `412×915`), `16px` horizontal padding, `8px` spacing grid, `44px` minimum touch target, top `7px` signal-yellow rail (`#F2DF3A`), `IBM Plex Mono` eyebrow, `Barlow Condensed` uppercase page title, warm off-white background (`#F4F5F1`), and `96px` bottom tab bar for the 5 primary tabs.
 
-| Route | API / interaction | States |
-|---|---|---|
-| Login | `/auth/login`, SecureStore, `/auth/me` | validation, 401, loading |
-| Home | capabilities and feature links | service status |
-| SymptomAssessment | evidence metadata then POST | dynamic inputs, validation, errors |
-| AssessmentResult | fetch by opaque ID | completed, urgent, model unavailable |
-| AssessmentHistory | assessment list | empty/loading/error |
-| Guidance | internal items/readiness/provider map | local guidance, partner warnings |
-| Progress | monitoring list/create | empty, save, error |
-| Profile / HealthProfileEdit | profile read/update | optional sensitive inputs |
-| Nutrition / Gyms | partner integration endpoints | unconfigured/unavailable/empty/data |
-| Professionals / ProfessionalDetail | directory and available slots | empty/unavailable |
-| Booking / MyBookings | booking, optional consent, list/revoke | 409 and consent denial |
-| ProfessionalSharedAssessment | permissioned API | 403/authorized summary |
+| Canonical Route ID | Navigator | Bounded Context | API Operation(s) | Required UI States |
+|---|---|---|---|---|
+| `Login` | `AuthNavigator` | Identity & Access | `POST /api/v1/auth/login`, `GET /api/v1/auth/me` | Dark brand header (`logo-ambatufit.png`), email/password validation, 401 error, loading, reduced-motion support |
+| `Home` | `AppTabs` (Tab 1) | Personal Health Intelligence | `GET /api/v1/guidance`, `GET /api/v1/system/capabilities` | Dark hero CTA, symptom check CTA, guidance/monitoring cards, `Medications` link, partner & consultation entry points |
+| `SymptomAssessment` | `AppTabs` (Tab 2) | Personal Health Intelligence | `GET /api/v1/assessments/evidences`, `POST /api/v1/assessments` | Non-diagnostic disclaimer before input, metadata-driven DDXPlus controls, validation, single-submit protection |
+| `AssessmentResult` | `AppStack` | Personal Health Intelligence | `GET /api/v1/assessments/{id}` | Fetch by opaque `assessment_id`; `completed`, `safety_alert` (`urgent` red banner, hides professional/gym promo), `model_unavailable`; links to `Medications` & `Professionals` |
+| `AssessmentHistory` | `AppStack` | Personal Health Intelligence | `GET /api/v1/assessments` | Owner-scoped timeline list, empty state (`empty.assessments`), loading, retry |
+| `Guidance` | `AppTabs` (Tab 3) | Personal Health Intelligence | `GET /api/v1/guidance` | Deterministic rule cards, `readiness` (`ready | needs_review | unavailable`), partner status notices (`AmbatuNoutrish`, `AmbatuMove`), links to `Medications`, `Nutrition`, `Gyms` |
+| `Medications` | `AppStack` | Personal Health Intelligence (Supporting: Medication Information & Safety Guidance) | `GET /api/v1/medications?query=...&indication=...`, `GET /api/v1/assessments/{id}/medication-information` | Educational disclaimer, standalone search/filter or assessment-linked safety gating; `available`, `restricted` (zero drug cards + doctor/pharmacist referral), `unavailable`, empty search |
+| `MedicationDetail` | `AppStack` | Personal Health Intelligence (Supporting: Medication Information & Safety Guidance) | `GET /api/v1/medications/{id}` | Active ingredient, category (`obat_bebas | obat_bebas_terbatas`), general indications, warnings, contraindications, verified source attribution, educational disclaimer; no dosing or purchase CTA |
+| `Progress` | `AppTabs` (Tab 4) | Personal Health Intelligence | `GET /api/v1/monitoring/entries`, `POST /api/v1/monitoring/entries` | Wellbeing check-in form (`recorded_at`, `wellbeing_note`, `symptom_tags`), validation, persisted history table, empty state (`empty.monitoring`) |
+| `Profile` | `AppTabs` (Tab 5) | Identity & Access + Personal Health Intelligence | `GET /api/v1/profile`, `GET /api/v1/auth/me` | Account identity, health goal summary, links to `HealthProfileEdit`, `AssessmentHistory`, `MyBookings`, logout confirmation |
+| `HealthProfileEdit` | `AppStack` | Personal Health Intelligence | `PUT /api/v1/profile` | Canonical `health_goal` enum (`general_wellbeing`, `balanced_nutrition`, `active_lifestyle`, `muscle_gain`), optional `age_years` (clearable to `null`), optional `sex_for_model` (`M | F | unknown`), dietary/activity preferences |
+| `Nutrition` | `AppStack` | External: Nutrition Information Context (`AmbatuNoutrish`) | `GET /integration/v1/nutrition/foods?query=...` | Query input, `Sumber: AmbatuNoutrish` attribution, `provider_status` (`available | unavailable | not_configured`), calories/macros card list, retry |
+| `Gyms` | `AppStack` | External: Gym & Fitness Context (`AmbatuMove` / `ambatumove`) | `GET /integration/v1/fitness/gyms?city=...` | City filter, `Sumber: AmbatuMove` attribution, `provider_status`, address/facilities/opening hours list (no fabricated coordinates), retry |
+| `Professionals` | `AppStack` | Consultation & Booking | `GET /api/v1/professionals?specialty=doctor\|dietitian` | Specialty filter (`Semua`, `Dokter`, `Ahli gizi`), `DATA DEMO` label, empty/loading/error states |
+| `ProfessionalDetail` | `AppStack` | Consultation & Booking | `GET /api/v1/professionals/{id}/slots` | Selectable date/time slot cards from server response, empty slots notice, continue to `Booking` |
+| `Booking` | `AppStack` | Consultation & Booking + Identity & Access | `POST /api/v1/bookings`, `POST /api/v1/consents/assessment-sharing` | Appointment confirmation, `409` slot collision error handling, optional assessment-sharing `ConsentToggle` (unchecked by default) with ISO 8601 expiry |
+| `MyBookings` | `AppStack` | Consultation & Booking + Identity & Access | `GET /api/v1/bookings`, `DELETE /api/v1/consents/assessment-sharing/{id}` | Saved bookings list, active consent indicator, immediate consent revocation action |
+| `ProfessionalSharedAssessment` | `AppStack` (Optional Role View) | Consultation & Booking | `GET /api/v1/professional/bookings/{id}/shared-assessment` | Authorized professional view of consented pre-consultation summary; `403` denial when consent is absent/revoked |

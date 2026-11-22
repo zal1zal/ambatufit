@@ -1,5 +1,5 @@
 // Original Figma export frames on page 01, downloaded locally.
-export const assetFiles = Object.freeze({
+export const assets = Object.freeze({
   tabHome: require('../../assets/icon-home.svg'),
   tabAssessment: require('../../assets/icon-assessment.svg'),
   tabGuidance: require('../../assets/icon-guidance.svg'),
@@ -15,4 +15,8 @@ export const assetFiles = Object.freeze({
   professionalPlaceholder: require('../../assets/professional-placeholder.png'),
   nutritionPlaceholder: require('../../assets/nutrition-placeholder.png'),
   gymPlaceholder: require('../../assets/gym-placeholder.png'),
+  medicationPlaceholder: require('../../assets/medication-placeholder.png'),
 });
+
+export const assetFiles = assets;
+export default assets;

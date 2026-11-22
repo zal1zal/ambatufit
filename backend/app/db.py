@@ -11,6 +11,8 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Text,
+    inspect,
+    text,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from app.config import settings
@@ -40,8 +42,10 @@ class User(Base):
 
     id = Column(String(64), primary_key=True, index=True)
     email = Column(String(128), unique=True, index=True, nullable=False)
+    display_name = Column(String(128), nullable=True)
     password_hash = Column(String(255), nullable=False)
     role = Column(String(32), default="user", nullable=False)  # user | professional | partner
+    token_version = Column(Integer, default=1, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     profile = relationship("HealthProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -50,10 +54,20 @@ class User(Base):
     bookings = relationship("Booking", back_populates="user", foreign_keys="Booking.user_id")
 
 
+class RevokedToken(Base):
+    __tablename__ = "revoked_tokens"
+
+    jti = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    revoked_at = Column(DateTime, default=utc_now, nullable=False)
+    expires_at = Column(DateTime, nullable=True)
+
+
 class HealthProfile(Base):
     __tablename__ = "health_profiles"
 
     user_id = Column(String(64), ForeignKey("users.id"), primary_key=True)
+    display_name = Column(String(128), nullable=True)
     age_years = Column(Integer, nullable=True)
     sex_for_model = Column(String(16), default="unknown", nullable=False)  # M | F | unknown
     health_goal = Column(String(64), default="general_wellbeing", nullable=False)
@@ -139,6 +153,7 @@ class MonitoringEntry(Base):
     recorded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     wellbeing_note = Column(Text, nullable=False)
     symptom_tags_json = Column(Text, default="[]", nullable=False)
+    meal_logs_json = Column(Text, default="[]", nullable=False)
 
     user = relationship("User", back_populates="monitoring_entries")
 
@@ -307,4 +322,25 @@ def get_db():
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    inspector = inspect(engine)
+    alter_statements = []
+    if inspector.has_table("users"):
+        user_cols = {c["name"] for c in inspector.get_columns("users")}
+        if "display_name" not in user_cols:
+            alter_statements.append("ALTER TABLE users ADD COLUMN display_name VARCHAR(128)")
+        if "token_version" not in user_cols:
+            alter_statements.append("ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1")
+    if inspector.has_table("health_profiles"):
+        prof_cols = {c["name"] for c in inspector.get_columns("health_profiles")}
+        if "display_name" not in prof_cols:
+            alter_statements.append("ALTER TABLE health_profiles ADD COLUMN display_name VARCHAR(128)")
+    if inspector.has_table("monitoring_entries"):
+        mon_cols = {c["name"] for c in inspector.get_columns("monitoring_entries")}
+        if "meal_logs_json" not in mon_cols:
+            alter_statements.append("ALTER TABLE monitoring_entries ADD COLUMN meal_logs_json TEXT NOT NULL DEFAULT '[]'")
+    if alter_statements:
+        with engine.begin() as conn:
+            for stmt in alter_statements:
+                conn.execute(text(stmt))
+
 

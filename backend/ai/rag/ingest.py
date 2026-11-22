@@ -918,11 +918,11 @@ def ingest_medlineplus(store: RAGStore, fetched_at: str) -> Tuple[int, int, List
                     "synonyms": syns,
                     "lay_terms": lays,
                     "icd_code": topic.get("icd_code") or existing.get("icd_code"),
-                    "short_description": short_desc,
+                    "short_description": existing.get("short_description") or short_desc,
                     "causes": existing.get("causes"),
                     "symptoms": existing.get("symptoms"),
                     "risk_factors": existing.get("risk_factors"),
-                    "prevention_management": None,
+                    "prevention_management": existing.get("prevention_management"),
                     "source_references": refs,
                     "review_metadata": {"medlineplus_url": doc_url, "fetched_at": fetched_at},
                 }

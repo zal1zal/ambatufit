@@ -1,6 +1,15 @@
 [
     {
         "service":  "core",
+        "path":  "/api/v1/auth/register",
+        "method":  "post",
+        "requestSchema":  "registerInputSchema",
+        "responseSchema":  "userSchema",
+        "requestFixture":  "register-request.json",
+        "responseFixture":  "user-response.json"
+    },
+    {
+        "service":  "core",
         "path":  "/api/v1/auth/login",
         "method":  "post",
         "requestSchema":  "loginInputSchema",
@@ -14,6 +23,31 @@
         "method":  "get",
         "responseSchema":  "userSchema",
         "responseFixture":  "user-response.json"
+    },
+    {
+        "service":  "core",
+        "path":  "/api/v1/auth/me",
+        "method":  "put",
+        "requestSchema":  "accountUpdateInputSchema",
+        "responseSchema":  "userSchema",
+        "requestFixture":  "account-update-request.json",
+        "responseFixture":  "user-response.json"
+    },
+    {
+        "service":  "core",
+        "path":  "/api/v1/auth/change-password",
+        "method":  "post",
+        "requestSchema":  "passwordChangeInputSchema",
+        "responseSchema":  "passwordChangeResponseSchema",
+        "requestFixture":  "change-password-request.json",
+        "responseFixture":  "change-password-response.json"
+    },
+    {
+        "service":  "core",
+        "path":  "/api/v1/auth/logout",
+        "method":  "post",
+        "responseSchema":  "logoutResponseSchema",
+        "responseFixture":  "logout-response.json"
     },
     {
         "service":  "core",

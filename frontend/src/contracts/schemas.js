@@ -50,6 +50,7 @@ export const assessmentResultSchema = z
   .passthrough();
 export const profileUpdateSchema = z
   .object({
+    display_name: z.string().max(128).nullable().optional(),
     health_goal: z.enum([
       'general_wellbeing',
       'balanced_nutrition',
@@ -60,10 +61,24 @@ export const profileUpdateSchema = z
     sex_for_model: z.enum(['M', 'F', 'unknown']).optional(),
   })
   .passthrough();
+export const mealPortionLogItemSchema = z
+  .object({
+    food_id: z.string().max(64).nullable().optional(),
+    name: z.string().min(1).max(160),
+    portions: z.number().positive().max(20).default(1),
+    portion_unit: z.string().max(40).default('porsi'),
+    calories_kcal: z.number().nonnegative().nullable().optional(),
+    protein_g: z.number().nonnegative().nullable().optional(),
+    carbs_g: z.number().nonnegative().nullable().optional(),
+    fat_g: z.number().nonnegative().nullable().optional(),
+    provider_id: z.enum(['ambatunoutrish', 'ambatufit_manual']).default('ambatufit_manual'),
+  })
+  .passthrough();
 export const monitoringInputSchema = z.object({
   recorded_at: z.string().datetime({ offset: true }),
   wellbeing_note: z.string().min(1).max(2000),
   symptom_tags: z.array(z.string()).default([]),
+  meal_logs: z.array(mealPortionLogItemSchema).default([]),
 });
 export const bookingInputSchema = z.object({
   professional_id: z.string().min(1),
@@ -78,9 +93,14 @@ export function isEvidence(value) {
 
 export const providerStatusSchema = z.enum(['available', 'unavailable', 'not_configured']);
 export const listSchema = (item) => z.object({ items: z.array(item), total: z.number().int().nonnegative() }).passthrough();
-export const userSchema = z.object({ id: z.string().min(1), email: z.string(), role: z.enum(['user', 'professional', 'partner']) }).passthrough();
+export const userSchema = z.object({ id: z.string().min(1), email: z.string(), role: z.enum(['user', 'professional', 'partner']), display_name: z.string().nullable().optional() }).passthrough();
+export const registerInputSchema = z.object({ email: z.string().min(3).max(128), password: z.string().min(6), display_name: z.string().max(128).nullable().optional() });
+export const accountUpdateInputSchema = z.object({ display_name: z.string().max(128).nullable().optional() });
+export const passwordChangeInputSchema = z.object({ current_password: z.string().min(6), new_password: z.string().min(6) });
+export const passwordChangeResponseSchema = z.object({ status: z.string(), message: z.string() }).passthrough();
+export const logoutResponseSchema = z.object({ status: z.string(), revoked: z.boolean(), message: z.string() }).passthrough();
 export const loginSchema = z.object({ access_token: z.string().min(1), token_type: z.literal('bearer'), expires_in: z.number().positive(), user: userSchema });
-export const profileSchema = profileUpdateSchema.extend({ user_id: z.string().min(1), age_years: z.number().int().min(0).max(130).nullable(), dietary_preferences: z.array(z.string()), activity_preferences: z.array(z.string()), known_conditions: z.array(z.string()), updated_at: z.string().datetime({ offset: true }) });
+export const profileSchema = profileUpdateSchema.extend({ user_id: z.string().min(1), display_name: z.string().nullable().optional(), age_years: z.number().int().min(0).max(130).nullable(), dietary_preferences: z.array(z.string()), activity_preferences: z.array(z.string()), known_conditions: z.array(z.string()), updated_at: z.string().datetime({ offset: true }) });
 export const assessmentListItemSchema = z.object({ id: z.string(), status: z.enum(assessmentStatuses), created_at: z.string().datetime({ offset: true }), summary: z.string(), safety_level: z.enum(safetyLevels) });
 export const guidanceItemSchema = z.object({ id: z.string(), category: z.string(), title: z.string(), description: z.string(), source: z.object({ provider_id: z.string(), reference_id: z.string() }), readiness: z.enum(['ready', 'needs_review', 'unavailable']) });
 export const guidanceSchema = z.object({ items: z.array(guidanceItemSchema), provider_status: z.object({ ambatunoutrish: providerStatusSchema, ambatumove: providerStatusSchema }) });

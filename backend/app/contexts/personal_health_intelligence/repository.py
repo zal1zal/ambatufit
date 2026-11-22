@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from app.db import HealthProfile, Assessment, AssessmentEvidence, MonitoringEntry, GuidanceSnapshot
+from app.db import User, HealthProfile, Assessment, AssessmentEvidence, MonitoringEntry, GuidanceSnapshot
 from app.schemas.health import (
     HealthProfileDTO,
     AssessmentRequest,
@@ -18,9 +18,11 @@ class HealthRepository:
 
     def get_or_create_profile(self, user_id: str) -> HealthProfile:
         profile = self.db.query(HealthProfile).filter(HealthProfile.user_id == user_id).first()
+        user = self.db.query(User).filter(User.id == user_id).first()
         if not profile:
             profile = HealthProfile(
                 user_id=user_id,
+                display_name=user.display_name if user else None,
                 age_years=None,
                 sex_for_model="unknown",
                 health_goal="general_wellbeing",
@@ -31,10 +33,20 @@ class HealthRepository:
             self.db.add(profile)
             self.db.commit()
             self.db.refresh(profile)
+        elif not profile.display_name and user and user.display_name:
+            profile.display_name = user.display_name
+            self.db.commit()
+            self.db.refresh(profile)
         return profile
 
     def update_profile(self, user_id: str, dto: HealthProfileDTO) -> HealthProfile:
         profile = self.get_or_create_profile(user_id)
+        if 'display_name' in dto.model_fields_set:
+            clean_name = (dto.display_name or "").strip() or None
+            profile.display_name = clean_name
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if user:
+                user.display_name = clean_name
         if 'age_years' in dto.model_fields_set:
             profile.age_years = dto.age_years
         if 'sex_for_model' in dto.model_fields_set:
@@ -111,12 +123,14 @@ class HealthRepository:
 
     def create_monitoring_entry(self, user_id: str, req: MonitoringEntryRequest) -> MonitoringEntry:
         entry_id = f"mon-{uuid.uuid4().hex[:12]}"
+        meal_payload = [m.model_dump() for m in (req.meal_logs or [])]
         entry = MonitoringEntry(
             id=entry_id,
             user_id=user_id,
             recorded_at=req.recorded_at.astimezone(timezone.utc).replace(tzinfo=None),
             wellbeing_note=req.wellbeing_note,
             symptom_tags_json=json.dumps(req.symptom_tags),
+            meal_logs_json=json.dumps(meal_payload, ensure_ascii=False),
         )
         self.db.add(entry)
         self.db.commit()

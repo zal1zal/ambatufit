@@ -1,140 +1,137 @@
 {
-    "source":  "Original export frames from Figma page 01; nine PNGs and six SVG controls downloaded locally.",
-    "assets":  [
-                   {
-                       "filename":  "app-icon.png",
-                       "source":  "Figma node 16:7",
-                       "license":  "project original",
-                       "alt":  "AmbatuFit telemetry mark",
-                       "screens":  [
-                                       "app"
-                                   ]
-                   },
-                   {
-                       "filename":  "splash.png",
-                       "source":  "Figma node 16:16",
-                       "license":  "project original",
-                       "alt":  "AmbatuFit geometric signal wordmark",
-                       "screens":  [
-                                       "startup"
-                                   ]
-                   },
-                   {
-                       "filename":  "logo-ambatufit.png",
-                       "source":  "Figma node 16:25",
-                       "license":  "project original",
-                       "alt":  "AmbatuFit wordmark",
-                       "screens":  [
-                                       "Login"
-                                   ]
-                   },
-                   {
-                       "filename":  "onboarding-health.png",
-                       "source":  "Figma node 16:34",
-                       "license":  "project original",
-                       "alt":  "Abstract health information illustration",
-                       "screens":  [
-                                       "Home"
-                                   ]
-                   },
-                   {
-                       "filename":  "empty-assessments.png",
-                       "source":  "Figma node 16:43",
-                       "license":  "project original",
-                       "alt":  "Empty assessment illustration",
-                       "screens":  [
-                                       "AssessmentHistory"
-                                   ]
-                   },
-                   {
-                       "filename":  "error-api.png",
-                       "source":  "Figma node 16:52",
-                       "license":  "project original",
-                       "alt":  "Disconnected service illustration",
-                       "screens":  [
-                                       "errors"
-                                   ]
-                   },
-                   {
-                       "filename":  "professional-placeholder.png",
-                       "source":  "Figma node 16:61",
-                       "license":  "project original",
-                       "alt":  "Generic profile graphic",
-                       "screens":  [
-                                       "Professionals"
-                                   ]
-                   },
-                   {
-                       "filename":  "nutrition-placeholder.png",
-                       "source":  "Figma node 16:70",
-                       "license":  "project original",
-                       "alt":  "Nutrition outline",
-                       "screens":  [
-                                       "Nutrition"
-                                   ]
-                   },
-                   {
-                       "filename":  "gym-placeholder.png",
-                       "source":  "Figma node 16:79",
-                       "license":  "project original",
-                       "alt":  "Facility outline",
-                       "screens":  [
-                                       "Gyms"
-                                   ]
-                   },
-                   {
-                       "filename":  "icon-home.svg",
-                       "source":  "Figma node 18:6",
-                       "license":  "project original",
-                       "alt":  "Home navigation icon",
-                       "screens":  [
-                                       "bottom navigation"
-                                   ]
-                   },
-                   {
-                       "filename":  "icon-assessment.svg",
-                       "source":  "Figma node 18:11",
-                       "license":  "project original",
-                       "alt":  "Assessment navigation icon",
-                       "screens":  [
-                                       "bottom navigation"
-                                   ]
-                   },
-                   {
-                       "filename":  "icon-guidance.svg",
-                       "source":  "Figma node 22:38",
-                       "license":  "project original",
-                       "alt":  "Guidance navigation icon",
-                       "screens":  [
-                                       "bottom navigation"
-                                   ]
-                   },
-                   {
-                       "filename":  "icon-progress.svg",
-                       "source":  "Figma node 18:18",
-                       "license":  "project original",
-                       "alt":  "Progress navigation icon",
-                       "screens":  [
-                                       "bottom navigation"
-                                   ]
-                   },
-                   {
-                       "filename":  "icon-profile.svg",
-                       "source":  "Figma node 18:22",
-                       "license":  "project original",
-                       "alt":  "Profile navigation icon",
-                       "screens":  [
-                                       "bottom navigation"
-                                   ]
-                   },
-                   {
-                       "filename":  "icon-next.svg",
-                       "source":  "Figma node 18:30",
-                       "license":  "project original",
-                       "alt":  "Next action arrow",
-                       "screens":  [
-                                       "primary buttons"
-                                   ]
-                   }
-               ]
+  "source": "Original export frames from Figma page 01 (master glyph 16:6); ten PNGs and six SVG controls downloaded and verified locally.",
+  "assets": [
+    {
+      "filename": "app-icon.png",
+      "source": "Figma node 16:7 (master glyph 16:6)",
+      "license": "project original",
+      "dimensions": "512x512",
+      "transparency": false,
+      "alt": "AmbatuFit telemetry mark",
+      "screens": ["app"]
+    },
+    {
+      "filename": "splash.png",
+      "source": "Figma node 16:16 (master glyph 16:6)",
+      "license": "project original",
+      "dimensions": "390x844",
+      "transparency": false,
+      "alt": "AMBATUFIT PERSONAL HEALTH INTELLIGENCE centered splash lockup",
+      "screens": ["startup"]
+    },
+    {
+      "filename": "logo-ambatufit.png",
+      "source": "Figma node 16:25 (master glyph 16:6)",
+      "license": "project original",
+      "dimensions": "520x180",
+      "transparency": false,
+      "alt": "AMBATUFIT PERSONAL HEALTH INTELLIGENCE horizontal lockup",
+      "screens": ["Login", "Home"]
+    },
+    {
+      "filename": "onboarding-health.png",
+      "source": "Figma node 16:34",
+      "license": "project original",
+      "dimensions": "300x300",
+      "transparency": false,
+      "alt": "Abstract health information illustration",
+      "screens": ["Home", "Login"]
+    },
+    {
+      "filename": "empty-assessments.png",
+      "source": "Figma node 16:43",
+      "license": "project original",
+      "dimensions": "300x300",
+      "transparency": false,
+      "alt": "Empty assessment illustration",
+      "screens": ["AssessmentHistory"]
+    },
+    {
+      "filename": "error-api.png",
+      "source": "Figma node 16:52",
+      "license": "project original",
+      "dimensions": "300x300",
+      "transparency": false,
+      "alt": "Disconnected service illustration",
+      "screens": ["errors"]
+    },
+    {
+      "filename": "professional-placeholder.png",
+      "source": "Figma node 16:61",
+      "license": "project original",
+      "dimensions": "300x300",
+      "transparency": false,
+      "alt": "Generic profile graphic",
+      "screens": ["Professionals"]
+    },
+    {
+      "filename": "nutrition-placeholder.png",
+      "source": "Figma node 16:70",
+      "license": "project original",
+      "dimensions": "300x300",
+      "transparency": false,
+      "alt": "Nutrition outline",
+      "screens": ["Nutrition"]
+    },
+    {
+      "filename": "gym-placeholder.png",
+      "source": "Figma node 16:79",
+      "license": "project original",
+      "dimensions": "300x300",
+      "transparency": false,
+      "alt": "Facility outline (AmbatuMove)",
+      "screens": ["Gyms"]
+    },
+    {
+      "filename": "medication-placeholder.png",
+      "source": "Figma node 16:88",
+      "license": "project original",
+      "dimensions": "300x300",
+      "transparency": false,
+      "alt": "Verified medication information reference icon",
+      "screens": ["Medications", "MedicationDetail"]
+    },
+    {
+      "filename": "icon-home.svg",
+      "source": "Figma node 18:6",
+      "license": "project original",
+      "alt": "Home navigation icon",
+      "screens": ["bottom navigation"]
+    },
+    {
+      "filename": "icon-assessment.svg",
+      "source": "Figma node 18:11",
+      "license": "project original",
+      "alt": "Assessment navigation icon",
+      "screens": ["bottom navigation"]
+    },
+    {
+      "filename": "icon-guidance.svg",
+      "source": "Figma node 22:38",
+      "license": "project original",
+      "alt": "Guidance navigation icon",
+      "screens": ["bottom navigation"]
+    },
+    {
+      "filename": "icon-progress.svg",
+      "source": "Figma node 18:18",
+      "license": "project original",
+      "alt": "Progress navigation icon",
+      "screens": ["bottom navigation"]
+    },
+    {
+      "filename": "icon-profile.svg",
+      "source": "Figma node 18:22",
+      "license": "project original",
+      "alt": "Profile navigation icon",
+      "screens": ["bottom navigation"]
+    },
+    {
+      "filename": "icon-next.svg",
+      "source": "Figma node 18:30",
+      "license": "project original",
+      "alt": "Next action arrow",
+      "screens": ["primary buttons"]
+    }
+  ]
 }

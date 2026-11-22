@@ -5,16 +5,22 @@ import {
   AssessmentResultScreen,
   BookingScreen,
   ProfessionalDetailScreen,
+  ProfessionalsScreen,
   ProgressScreen,
 } from '../src/screens/AppScreens';
 import { ApiService } from '../src/services/ApiService';
-jest.mock('../src/state/AuthContext', () => ({ useAuth: () => ({ login: jest.fn() }) }));
+const mockAuthLogin = jest.fn();
+const mockAuthRegister = jest.fn();
+jest.mock('../src/state/AuthContext', () => ({
+  useAuth: () => ({ login: mockAuthLogin, register: mockAuthRegister }),
+}));
 jest.mock('../src/services/ApiService', () => ({
   ApiService: {
+    auth: { register: jest.fn(), changePassword: jest.fn(), logout: jest.fn() },
     assessments: { get: jest.fn() },
     monitoring: { list: jest.fn(), create: jest.fn() },
     bookings: { create: jest.fn() },
-    professionals: { slots: jest.fn() },
+    professionals: { list: jest.fn(), slots: jest.fn() },
     consents: { grantAssessmentSharing: jest.fn() },
   },
 }));
@@ -96,3 +102,53 @@ test('ProfessionalDetailScreen renders consultation slots as selectable date gri
   fireEvent.press(v.getByText('23 Nov 2026'));
   expect(v.getByText('✓ Dipilih')).toBeTruthy();
 });
+
+test('LoginScreen supports switching to registration mode with optional display_name', async () => {
+  mockAuthRegister.mockResolvedValue({ id: 'u-1', email: 'baru@contoh.com', display_name: 'Siti' });
+  mockAuthLogin.mockResolvedValue({ access_token: 'tok', user: { id: 'u-1' } });
+  const v = render(<LoginScreen navigation={navigation} />);
+  fireEvent.press(v.getByRole('button', { name: 'Daftar Akun Baru' }));
+  fireEvent.changeText(v.getByLabelText('Nama tampilan · opsional'), 'Siti Rahma');
+  fireEvent.changeText(v.getByLabelText('Alamat email'), 'siti@contoh.com');
+  fireEvent.changeText(v.getByLabelText('Kata sandi'), 'SitiPass123!');
+  fireEvent.press(v.getByRole('button', { name: 'Daftar Akun' }));
+  await waitFor(() =>
+    expect(mockAuthRegister).toHaveBeenCalledWith('siti@contoh.com', 'SitiPass123!', 'Siti Rahma'),
+  );
+  await waitFor(() => expect(mockAuthLogin).toHaveBeenCalledWith('siti@contoh.com', 'SitiPass123!'));
+});
+
+test('AssessmentResultScreen renders contextual consultation invitation and pre-filters specialty', async () => {
+  ApiService.assessments.get.mockResolvedValue({
+    id: 'asm-ctx-1',
+    status: 'completed',
+    summary: 'Ringkasan keluhan',
+    safety: { level: 'review_recommended', message: 'Perlu peninjauan', rule_ids: [] },
+    ml_assessment: { status: 'completed', model_version: 'v1' },
+  });
+  const v = render(
+    <AssessmentResultScreen
+      navigation={navigation}
+      route={{ name: 'AssessmentResult', params: { assessment_id: 'asm-ctx-1' } }}
+    />,
+  );
+  await waitFor(() => expect(v.getByText('UNDANGAN KONSULTASI KONTEKSTUAL')).toBeTruthy());
+  fireEvent.press(v.getByRole('button', { name: 'Konsultasi Ahli Gizi' }));
+  expect(navigation.navigate).toHaveBeenCalledWith('Professionals', {
+    assessment_id: 'asm-ctx-1',
+    specialty: 'dietitian',
+  });
+});
+
+test('ProfessionalsScreen pre-filters by specialty passed from contextual consultation invitation', async () => {
+  ApiService.professionals.list.mockResolvedValue({ items: [] });
+  render(
+    <ProfessionalsScreen
+      navigation={navigation}
+      route={{ name: 'Professionals', params: { assessment_id: 'asm-1', specialty: 'dietitian' } }}
+    />,
+  );
+  await waitFor(() => expect(ApiService.professionals.list).toHaveBeenCalledWith('dietitian'));
+});
+
+

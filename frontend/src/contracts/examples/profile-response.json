@@ -1,5 +1,6 @@
 {
   "user_id": "u-demo-001",
+  "display_name": "Pengguna Demo",
   "age_years": null,
   "sex_for_model": "unknown",
   "health_goal": "general_wellbeing",

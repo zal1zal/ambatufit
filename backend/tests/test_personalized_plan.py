@@ -137,12 +137,33 @@ def test_plan_09_10_11_12_activation_revision_progress_isolation_and_citations(c
     assert v2["parent_plan_id"] == v1["id"]
     assert v2["goal"] == "muscle_gain"
 
-    # Scenario 10: Progress check-in & summary reflect monitoring + plans
-    client.post(
+    # Scenario 10: Progress check-in & summary reflect monitoring + plans + structured nutrition targets & meal logs
+    assert v2["nutrition"]["targets"]["daily_calories_kcal"] == 2350
+    assert v2["nutrition"]["targets"]["protein_g"] == 110
+    assert v2["nutrition"]["targets"]["data_owner"] == "ambatufit:personal_health_intelligence"
+    assert v2["nutrition"]["targets"]["master_food_provider"] == "ambatunoutrish"
+
+    mon_res = client.post(
         "/api/v1/monitoring/entries",
         headers=headers,
-        json={"wellbeing_note": "Energi lebih baik hari ini", "symptom_tags": ["bugar"]},
+        json={
+            "wellbeing_note": "Energi lebih baik hari ini",
+            "symptom_tags": ["bugar"],
+            "meal_logs": [
+                {
+                    "name": "Dada ayam panggang & nasi merah",
+                    "portions": 1.5,
+                    "portion_unit": "porsi",
+                    "calories_kcal": 520,
+                    "protein_g": 42,
+                    "provider_id": "ambatufit_manual",
+                }
+            ],
+        },
     )
+    assert mon_res.status_code == 200
+    assert len(mon_res.json()["meal_logs"]) == 1
+    assert mon_res.json()["meal_logs"][0]["portions"] == 1.5
     prog = client.get("/api/v1/progress/summary", headers=headers).json()
     assert prog["monitoring_count"] >= 1
     assert prog["plans_count"] >= 2

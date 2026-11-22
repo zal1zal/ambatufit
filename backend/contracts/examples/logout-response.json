@@ -1,0 +1,5 @@
+{
+  "status": "logged_out",
+  "revoked": true,
+  "message": "Sesi berhasil diakhiri dan token otorisasi telah dicabut di server."
+}
