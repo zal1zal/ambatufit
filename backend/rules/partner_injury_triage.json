@@ -1,0 +1,336 @@
+{
+  "urgent_rules": [
+    {
+      "rule_id": "INJ-URG-CARDIO",
+      "category": "cardiopulmonary_emergency",
+      "keywords": [
+        "nyeri dada",
+        "dada tertekan",
+        "sesak napas berat",
+        "sulit bernapas",
+        "pingsan",
+        "hampir pingsan",
+        "keringat dingin",
+        "batuk berdarah",
+        "tercekik",
+        "chest pain",
+        "severe shortness of breath",
+        "fainting"
+      ],
+      "summary": "Keluhan Anda mengindikasikan kemungkinan tanda bahaya kardiopulmoner yang memerlukan evaluasi medis gawat darurat segera.",
+      "safety_message": "Segera hentikan seluruh aktivitas fisik, duduk/berbaring dengan posisi nyaman, dan segera menuju IGD atau hubungi layanan darurat (112/119).",
+      "checks_to_perform": [
+        "Hentikan segera seluruh aktivitas dan perhatikan apakah keluhan membaik atau justru menetap saat beristirahat.",
+        "Pantau kesadaran, laju napas, serta apakah muncul keringat dingin, pusing hebat, atau nyeri menjalar ke lengan/rahang/punggung.",
+        "Jangan berkendara sendirian menuju fasilitas kesehatan; minta pendamping atau hubungi ambulans/layanan darurat."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke IGD / hubungi 112 atau 119 sekarang juga bila nyeri dada, sesak napas berat, pingsan, atau batuk berdarah sedang berlangsung."
+      ]
+    },
+    {
+      "rule_id": "INJ-URG-TRAUMA",
+      "category": "severe_trauma_emergency",
+      "keywords": [
+        "patah tulang",
+        "fraktur",
+        "tulang bergeser",
+        "tulang menonjol",
+        "deformitas",
+        "bentuk berubah",
+        "luka terbuka berdarah hebat",
+        "perdarahan hebat",
+        "mati rasa mendadak",
+        "lumpuh",
+        "tidak bisa digerakkan sama sekali",
+        "fracture",
+        "deformity",
+        "severe bleeding",
+        "concussion"
+      ],
+      "head_trauma_triggers": ["cedera kepala", "benturan kepala", "terbentur kepala", "jatuh terbentur kepala", "head injury"],
+      "head_trauma_neuro_signs": ["muntah", "linglung", "pingsan", "pandangan kabur", "pusing hebat", "vomiting", "confused", "blurred vision", "fainting"],
+      "summary": "Terdeteksi tanda cedera berat atau gangguan neurologis akut yang memerlukan penanganan medis segera di fasilitas gawat darurat.",
+      "safety_message": "Jangan memaksa menggerakkan atau memijat bagian cedera. Stabilkan posisi tubuh dan segera menuju IGD atau hubungi layanan darurat terdekat.",
+      "checks_to_perform": [
+        "Jangan mencoba meluruskan kembali tulang/sendi yang tampak bergeser atau berubah bentuk.",
+        "Bila ada perdarahan terbuka, tekan perlahan dengan kain/kasa bersih dan jangan cabut benda asing yang tertancap.",
+        "Periksa apakah ujung jari tangan/kaki di bawah area cedera terasa dingin, pucat, kebiruan, atau mati rasa."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera menuju IGD jika tampak perubahan bentuk anggota gerak, luka berdarah hebat, mati rasa mendadak, atau benturan kepala disertai muntah/linglung/pingsan."
+      ]
+    }
+  ],
+  "review_trigger_keywords": [
+    "bengkak",
+    "pembengkakan",
+    "memar",
+    "lebam",
+    "tidak bisa menumpu",
+    "tidak kuat berdiri",
+    "bunyi pop",
+    "bunyi klik",
+    "goyang",
+    "tidak stabil",
+    "kesemutan",
+    "baal",
+    "kebas",
+    "menjalar",
+    "terkunci",
+    "kaku berat",
+    "robek",
+    "keseleo",
+    "terkilir",
+    "cedera",
+    "demam",
+    "pusing berputar",
+    "sesak",
+    "mengi",
+    "muntah",
+    "swelling",
+    "bruising",
+    "numbness",
+    "tingling",
+    "popping",
+    "instability",
+    "cannot bear weight",
+    "sprain",
+    "torn",
+    "fever"
+  ],
+  "review_trigger_symptoms": [
+    "bengkak",
+    "pembengkakan",
+    "memar",
+    "lebam",
+    "tidak_bisa_menumpu",
+    "tidak bisa menumpu",
+    "tidak_kuat_berdiri",
+    "bunyi_pop",
+    "bunyi pop",
+    "goyang",
+    "tidak_stabil",
+    "kesemutan",
+    "baal",
+    "kebas",
+    "menjalar",
+    "terkunci",
+    "kaku_berat",
+    "robek",
+    "keseleo",
+    "terkilir",
+    "cedera",
+    "demam",
+    "pusing_berputar",
+    "sesak",
+    "mengi",
+    "muntah",
+    "swelling",
+    "bruising",
+    "numbness",
+    "tingling",
+    "popping",
+    "instability",
+    "cannot_bear_weight",
+    "sprain",
+    "torn",
+    "fever"
+  ],
+  "mild_self_care_keywords": [
+    "pegal",
+    "doms",
+    "kaku ringan",
+    "lelah otot",
+    "kram ringan",
+    "nyeri ringan",
+    "soreness",
+    "mild soreness",
+    "mild fatigue"
+  ],
+  "category_profiles": {
+    "knee_joint_injury": {
+      "body_parts": ["knee"],
+      "keywords": ["lutut", "tempurung", "knee", "acl", "meniskus", "meniscus"],
+      "label_id": "Keluhan atau Cedera Sendi Lutut",
+      "checks_to_perform": [
+        "Amati adanya pembengkakan, kemerahan, rasa hangat, atau memar di sekitar tempurung dan sisi lutut.",
+        "Uji secara hati-hati tanpa memaksa: apakah Anda masih dapat menumpu berat badan pada kaki tersebut saat berdiri diam?",
+        "Perhatikan apakah lutut terasa goyang, seperti mau lepas, atau terkunci saat ditekuk dan diluruskan."
+      ],
+      "first_aid_actions": [
+        "Hentikan aktivitas lari, lompat, jongkok dalam, atau olahraga putar badan (pivoting).",
+        "Terapkan prinsip istirahat relatif, kompres dingin terbungkus handuk 15-20 menit tiap 2-3 jam pada 24-48 jam pertama, serta posisikan tungkai sedikit lebih tinggi saat berbaring.",
+        "Gunakan balut elastis ringan (tidak terlalu ketat hingga kesemutan) bila lutut terasa bengkak."
+      ],
+      "safe_activity_alternatives": [
+        "Istirahatkan lutut dari beban; bila nyaman, lakukan latihan tubuh bagian atas posisi duduk tanpa menumpu tungkai."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke dokter/IGD bila lutut sama sekali tidak bisa menumpu berat badan, tampak berubah bentuk, bengkak membesar cepat dalam 2 jam, atau terasa terkunci/mati rasa pada betis-kaki."
+      ]
+    },
+    "ankle_foot_sprain": {
+      "body_parts": ["ankle_foot"],
+      "keywords": ["pergelangan kaki", "engkel", "ankle", "telapak kaki", "tumit", "kaki terkilir", "keseleo kaki"],
+      "label_id": "Keluhan atau Cedera Pergelangan Kaki / Kaki",
+      "checks_to_perform": [
+        "Periksa apakah terdapat pembengkakan atau memar di sisi luar/dalam mata kaki serta nyeri tekan tepat pada tulang mata kaki.",
+        "Uji secara perlahan apakah kaki masih mampu melangkah 4 langkah tanpa nyeri tajam.",
+        "Periksa sensitivitas jari kaki untuk memastikan tidak ada kebas, kesemutan, atau perubahan warna pucat/kebiruan."
+      ],
+      "first_aid_actions": [
+        "Segera hentikan aktivitas berjalan jauh, berlari, atau melompat dan lepas sepatu secara perlahan.",
+        "Kompres es terbungkus kain selama 15-20 menit, posisikan kaki lebih tinggi dari jantung saat beristirahat, dan hindari mengurut/memijat area yang bengkak akut."
+      ],
+      "safe_activity_alternatives": [
+        "Hindari olahraga menumpu kaki; pertahankan mobilitas lengan dan tubuh atas secara duduk bila tubuh terasa nyaman."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke fasilitas kesehatan bila sama sekali tidak kuat menapak 4 langkah, tulang tampak bergeser, atau jari kaki terasa baal dan dingin."
+      ]
+    },
+    "back_spine_pain": {
+      "body_parts": ["back_spine"],
+      "keywords": ["punggung", "pinggang", "tulang belakang", "skoliosis", "hnp", "saraf kejepit", "back pain", "spine", "lumbar"],
+      "label_id": "Keluhan Punggung / Pinggang / Tulang Belakang",
+      "checks_to_perform": [
+        "Identifikasi apakah nyeri terlokalisir di otot pinggang/punggung atau menjalar ke bokong, paha, hingga betis/telapak kaki.",
+        "Perhatikan apakah muncul rasa baal, kesemutan, atau kelemahan tungkai saat berdiri dan berjalan.",
+        "Evaluasi gerakan mana yang memicu nyeri: membungkuk ke depan, memutar badan, atau berdiri lama."
+      ],
+      "first_aid_actions": [
+        "Hentikan angkat beban berat, sit-up ekstrem, atau gerakan memutar pinggang secara cepat.",
+        "Pertahankan postur duduk tegak dengan penopang pinggang bawah dan hindari tirah baring total terlalu lama; ganti dengan jalan ringan singkat bila tidak menjalar/tajam.",
+        "Gunakan kompres hangat 15 menit bila otot punggung terasa kaku tanpa pembengkakan baru."
+      ],
+      "safe_activity_alternatives": [
+        "Latihan napas diafragma dan jalan kaki santai jarak pendek di permukaan rata hanya bila tidak memicu nyeri menjalar."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke IGD bila nyeri punggung disertai kebas di area selangkangan, kesulitan menahan BAK/BAB, kelemahan mendadak kedua tungkai, atau riwayat jatuh berat."
+      ]
+    },
+    "shoulder_upper_limb": {
+      "body_parts": ["shoulder_arm", "wrist_hand"],
+      "keywords": ["bahu", "lengan", "siku", "pergelangan tangan", "tangan", "jari", "shoulder", "arm", "elbow", "wrist", "hand"],
+      "label_id": "Keluhan Bahu / Lengan / Pergelangan Tangan",
+      "checks_to_perform": [
+        "Amati apakah bahu/siku/pergelangan tangan tampak bengkak, memar, atau asimetris dibandingkan sisi yang sehat.",
+        "Uji rentang gerak perlahan tanpa beban: apakah lengan masih dapat diangkat atau diputar tanpa nyeri menusuk atau sensasi mengunci?",
+        "Periksa apakah terdapat kesemutan, baal, atau melemahnya genggaman jari tangan."
+      ],
+      "first_aid_actions": [
+        "Hentikan aktivitas menarik, mendorong, atau mengangkat beban dengan sisi lengan yang sakit.",
+        "Kompres dingin 15 menit bila ada bengkak/nyeri akut dan sangga lengan dengan posisi nyaman agar bahu/pergelangan tidak menggantung."
+      ],
+      "safe_activity_alternatives": [
+        "Jalan kaki santai tanpa mengayunkan beban pada lengan yang nyeri bila keseimbangan tetap stabil."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke IGD jika bahu/sendi tampak lepas atau berubah bentuk, jari tangan pucat/dingin/mati rasa, atau lengan tidak bisa digerakkan setelah jatuh."
+      ]
+    },
+    "hip_pelvis_injury": {
+      "body_parts": ["hip_pelvis"],
+      "keywords": ["pinggul", "panggul", "bokong", "selangkangan", "hip", "pelvis", "groin"],
+      "label_id": "Keluhan Pinggul / Panggul",
+      "checks_to_perform": [
+        "Perhatikan lokasi nyeri: apakah di lipat paha depan, sisi luar pinggul, atau menjalar dari pinggang ke bokong.",
+        "Cek apakah Anda dapat berjalan atau menumpu kaki dengan langkah simetris tanpa pincang atau nyeri tajam."
+      ],
+      "first_aid_actions": [
+        "Hentikan aktivitas lari, tendangan, atau peregangan berlebih pada area pinggul/lipat paha.",
+        "Istirahatkan pinggul dalam posisi netral dan gunakan kompres dingin 15 menit bila terasa nyeri tajam atau hangat."
+      ],
+      "safe_activity_alternatives": [
+        "Istirahat relatif dan latihan pernapasan/mobilitas tubuh bagian atas secara duduk tanpa memutar pinggul."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke IGD bila tidak dapat menumpu sama sekali setelah jatuh atau kaki tampak memendek/berputar ke luar."
+      ]
+    },
+    "head_neck_complaint": {
+      "body_parts": ["head_neck"],
+      "keywords": ["kepala", "pusing", "pening", "migrain", "leher", "tengkuk", "head", "neck", "dizzy", "vertigo", "benturan"],
+      "label_id": "Keluhan Kepala atau Leher",
+      "checks_to_perform": [
+        "Pastikan apakah keluhan diawali oleh benturan/jatuh atau muncul bertahap akibat ketegangan leher dan kurang istirahat.",
+        "Periksa adanya gejala penyerta: mual/muntah, pandangan ganda/kabur, silau berlebih, demam, atau kaku leher berat.",
+        "Pastikan kedua sisi wajah dan lengan dapat digerakkan normal serta bicara tetap jelas."
+      ],
+      "first_aid_actions": [
+        "Hentikan latihan fisik dan duduk atau berbaring di ruangan tenang dengan pencahayaan redup.",
+        "Penuhi hidrasi air putih bertahap dan hindari memutar/menghentak leher secara paksa."
+      ],
+      "safe_activity_alternatives": [
+        "Istirahat penuh dari olahraga hingga pusing atau nyeri leher mereda; lakukan pernapasan lambat sambil duduk nyaman."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke IGD jika sakit kepala muncul mendadak sangat hebat, disertai muntah berulang, pingsan, linglung, lemah sebelah tubuh, bicara pelo, atau pasca benturan kepala."
+      ]
+    },
+    "muscle_strain_doms": {
+      "body_parts": ["muscle_general"],
+      "keywords": ["otot", "pegal", "doms", "kram", "betis", "paha", "hamstring", "muscle", "cramp", "soreness"],
+      "label_id": "Nyeri Otot / Pegal / Ketegangan Otot",
+      "checks_to_perform": [
+        "Bedakan sifat nyeri: apakah pegal tumpul merata 12-48 jam setelah olahraga (DOMS) atau nyeri tajam mendadak saat gerakan berlangsung?",
+        "Raba secara lembut apakah terdapat cekungan otot, benjolan, memar luas, atau bengkak lokal.",
+        "Uji gerak perlahan tanpa beban untuk menilai apakah otot masih mampu berkontraksi nyaman."
+      ],
+      "first_aid_actions": [
+        "Kurangi intensitas latihan dan beri waktu pemulihan 24-48 jam pada kelompok otot yang pegal/tegang.",
+        "Kompres dingin 15 menit bila muncul nyeri mendadak/hangat/bengkak, atau kompres hangat bila hanya terasa kaku dan pegal ringan setelah latihan.",
+        "Cukupi minum air putih serta asupan protein harian untuk membantu pemulihan jaringan otot."
+      ],
+      "safe_activity_alternatives": [
+        "Peregangan statis ringan tanpa memaksa nyeri dan jalan santai 10-15 menit untuk melancarkan aliran darah."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera periksa ke dokter/IGD bila terdengar bunyi robek disertai memar luas, bengkak parah mendadak, atau urine berubah gelap pekat disertai nyeri otot hebat."
+      ]
+    },
+    "acute_illness_systemic": {
+      "body_parts": ["respiratory_general", "chest"],
+      "keywords": ["demam", "batuk", "pilek", "flu", "tenggorokan", "mual", "muntah", "diare", "sesak", "lemas", "fever", "cough"],
+      "label_id": "Keluhan Kesehatan Akut / Sistemik",
+      "checks_to_perform": [
+        "Ukur suhu tubuh bila tersedia dan catat apakah demam, batuk, mual, atau rasa lemas berlangsung lebih dari 2-3 hari.",
+        "Periksa kondisi hidrasi (frekuensi buang air kecil, bibir kering, atau pusing saat berdiri).",
+        "Pantau napas saat beristirahat: pastikan tidak ada napas cepat, mengi, atau rasa berat di dada."
+      ],
+      "first_aid_actions": [
+        "Tunda olahraga intensitas sedang hingga berat sampai keluhan sistemik (terutama demam) mereda minimal 48 jam.",
+        "Perbanyak istirahat serta minum air putih hangat atau larutan elektrolit bila mual/diare."
+      ],
+      "safe_activity_alternatives": [
+        "Fokus pada istirahat dan latihan pernapasan diafragma lembut; hindari aktivitas fisik berat selama masih merasa sakit."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera ke IGD jika muncul sesak napas saat istirahat, nyeri dada, demam tinggi menetap >3 hari, muntah terus-menerus, atau tanda dehidrasi berat."
+      ]
+    },
+    "general_pain_complaint": {
+      "body_parts": ["other"],
+      "keywords": [],
+      "label_id": "Keluhan Nyeri / Ketidaknyamanan Fisik Umum",
+      "checks_to_perform": [
+        "Catat lokasi tepat keluhan, pemicu awal (apakah saat olahraga atau muncul perlahan), dan intensitas nyeri skala 0-10.",
+        "Periksa apakah muncul bengkak, memar, kemerahan, demam lokal, atau kesemutan di sekitar area keluhan.",
+        "Amati apakah keluhan membaik setelah beristirahat 24 jam atau justru memburuk."
+      ],
+      "first_aid_actions": [
+        "Hentikan aktivitas yang memicu nyeri bertambah dan berikan istirahat relatif pada area tubuh terkait.",
+        "Kompres dingin 15 menit bila ada rasa hangat/bengkak baru, dan catat perkembangan gejala setiap hari."
+      ],
+      "safe_activity_alternatives": [
+        "Aktivitas ringan berintensitas rendah (seperti jalan santai atau peregangan lembut) hanya bila tidak memperberat nyeri."
+      ],
+      "when_to_seek_urgent_care": [
+        "Segera cari pertolongan medis jika nyeri mendadak sangat hebat, disertai bengkak cepat, demam tinggi, sesak napas, pusing seperti mau pingsan, atau baal/lemah anggota gerak."
+      ]
+    }
+  }
+}
+

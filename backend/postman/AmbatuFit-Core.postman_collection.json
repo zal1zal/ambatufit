@@ -26,6 +26,23 @@
           }
         },
         {
+          "name": "API Health Check (/api/health)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "health"
+              ]
+            }
+          }
+        },
+        {
           "name": "System Capabilities",
           "request": {
             "method": "GET",
@@ -326,6 +343,129 @@
                   "key": "specialty",
                   "value": "dietitian"
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Partner Get Recommendations (Physical Activity)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "move-sec-key-456"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/partner/recommendations/physical-activity?health_goal=active_lifestyle&activity_preference=running",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "partner",
+                "recommendations",
+                "physical-activity"
+              ],
+              "query": [
+                {
+                  "key": "health_goal",
+                  "value": "active_lifestyle"
+                },
+                {
+                  "key": "activity_preference",
+                  "value": "running"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Partner Check Injury or Pain",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "move-sec-key-456"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_user_ref\": \"move-user-001\",\n  \"complaint\": \"Lutut sakit dan bengkak setelah bermain futsal\",\n  \"body_part\": \"knee\",\n  \"pain_scale\": 7,\n  \"duration_days\": 2,\n  \"occurred_during_activity\": \"futsal\",\n  \"symptoms\": [\"bengkak\", \"nyeri_saat_menumpu\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/partner/injury-check",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "partner",
+                "injury-check"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Partner Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "move-sec-key-456"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"external_user_ref\": \"move-user-001\",\n  \"professional_id\": \"pro-doc-001\",\n  \"slot_id\": \"slot-doc-d1-1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/partner/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "partner",
+                "bookings"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Partner List Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "move-sec-key-456"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/partner/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "partner",
+                "bookings"
               ]
             }
           }

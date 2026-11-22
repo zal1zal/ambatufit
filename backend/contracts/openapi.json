@@ -25,6 +25,25 @@
         }
       }
     },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Api V1 Health Check",
+        "operationId": "api_v1_health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "tags": [
@@ -2045,15 +2064,20 @@
         ],
         "summary": "Partner Create Booking",
         "operationId": "partner_create_booking_api_v1_partner_bookings_post",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/PartnerBookingRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -2062,6 +2086,209 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PartnerBookingResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Partner List Bookings",
+        "operationId": "partner_list_bookings_api_v1_partner_bookings_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "external_user_ref",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 128
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "External User Ref"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResponse_PartnerBookingResponse_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partner/recommendations/physical-activity": {
+      "get": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Partner Get Physical Activity Recommendations",
+        "operationId": "partner_get_physical_activity_recommendations_api_v1_partner_recommendations_physical_activity_get",
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "health_goal",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(general_wellbeing|balanced_nutrition|active_lifestyle|muscle_gain)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Health Goal"
+            }
+          },
+          {
+            "name": "activity_preference",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 200
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Activity Preference"
+            }
+          },
+          {
+            "name": "has_injury",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Has Injury"
+            }
+          },
+          {
+            "name": "injury_area",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Injury Area"
+            }
+          },
+          {
+            "name": "include_general",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Include General"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerActivityRecommendationsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/partner/injury-check": {
+      "post": {
+        "tags": [
+          "Consultation & Booking Context"
+        ],
+        "summary": "Partner Check Injury Or Pain",
+        "operationId": "partner_check_injury_or_pain_api_v1_partner_injury_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerInjuryCheckRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerInjuryCheckResponse"
                 }
               }
             }
@@ -4022,6 +4249,27 @@
         ],
         "title": "PaginatedResponse[MonitoringEntryResponse]"
       },
+      "PaginatedResponse_PartnerBookingResponse_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PartnerBookingResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "PaginatedResponse[PartnerBookingResponse]"
+      },
       "PaginatedResponse_PersonalizedPlanDTO_": {
         "properties": {
           "items": {
@@ -4085,6 +4333,64 @@
         ],
         "title": "PaginatedResponse[SlotDTO]"
       },
+      "PartnerActivityRecommendationsResponse": {
+        "properties": {
+          "safety_status": {
+            "type": "string",
+            "enum": [
+              "clear",
+              "caution_injury_reported"
+            ],
+            "title": "Safety Status"
+          },
+          "safety_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Notice"
+          },
+          "consultation_recommended": {
+            "type": "boolean",
+            "title": "Consultation Recommended",
+            "default": false
+          },
+          "recommended_professionals": {
+            "items": {
+              "$ref": "#/components/schemas/ProfessionalDTO"
+            },
+            "type": "array",
+            "title": "Recommended Professionals"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PartnerRecommendationItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "Rekomendasi aktivitas fisik ini bersifat edukatif umum dan bukan pengganti evaluasi atau nasihat medis dokter."
+          }
+        },
+        "type": "object",
+        "required": [
+          "safety_status",
+          "items",
+          "total"
+        ],
+        "title": "PartnerActivityRecommendationsResponse"
+      },
       "PartnerBookingRequest": {
         "properties": {
           "external_user_ref": {
@@ -4134,6 +4440,41 @@
             "type": "string",
             "format": "date-time",
             "title": "Created At"
+          },
+          "professional_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Professional Name"
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
           }
         },
         "type": "object",
@@ -4146,6 +4487,324 @@
           "created_at"
         ],
         "title": "PartnerBookingResponse"
+      },
+      "PartnerInjuryCheckRequest": {
+        "properties": {
+          "external_user_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External User Ref"
+          },
+          "complaint": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Complaint"
+          },
+          "body_part": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "head_neck",
+                  "chest",
+                  "back_spine",
+                  "shoulder_arm",
+                  "wrist_hand",
+                  "hip_pelvis",
+                  "knee",
+                  "ankle_foot",
+                  "muscle_general",
+                  "respiratory_general",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Part"
+          },
+          "pain_scale": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pain Scale"
+          },
+          "duration_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 365.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Days",
+            "default": 1
+          },
+          "occurred_during_activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred During Activity"
+          },
+          "symptoms": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Symptoms"
+          },
+          "evidence_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Evidence Codes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "complaint"
+        ],
+        "title": "PartnerInjuryCheckRequest"
+      },
+      "PartnerInjuryCheckResponse": {
+        "properties": {
+          "check_id": {
+            "type": "string",
+            "title": "Check Id"
+          },
+          "external_user_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External User Ref"
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Checked At"
+          },
+          "detected_category": {
+            "type": "string",
+            "title": "Detected Category"
+          },
+          "urgency_level": {
+            "type": "string",
+            "enum": [
+              "urgent",
+              "review_recommended",
+              "self_care"
+            ],
+            "title": "Urgency Level"
+          },
+          "recommended_action_code": {
+            "type": "string",
+            "enum": [
+              "seek_emergency_care",
+              "consult_doctor",
+              "self_care_and_monitor"
+            ],
+            "title": "Recommended Action Code"
+          },
+          "activity_clearance": {
+            "type": "string",
+            "enum": [
+              "stop_immediately",
+              "pause_affected_area",
+              "modify_low_impact"
+            ],
+            "title": "Activity Clearance"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "safety_message": {
+            "type": "string",
+            "title": "Safety Message"
+          },
+          "checks_to_perform": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Checks To Perform"
+          },
+          "recommended_actions": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendedActionItem"
+            },
+            "type": "array",
+            "title": "Recommended Actions"
+          },
+          "when_to_seek_urgent_care": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "When To Seek Urgent Care"
+          },
+          "consultation_recommended": {
+            "type": "boolean",
+            "title": "Consultation Recommended"
+          },
+          "recommended_specialty": {
+            "type": "string",
+            "enum": [
+              "doctor",
+              "dietitian"
+            ],
+            "title": "Recommended Specialty",
+            "default": "doctor"
+          },
+          "recommended_professionals": {
+            "items": {
+              "$ref": "#/components/schemas/ProfessionalDTO"
+            },
+            "type": "array",
+            "title": "Recommended Professionals"
+          },
+          "safe_activity_alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Safe Activity Alternatives"
+          },
+          "matched_rule_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Matched Rule Ids"
+          },
+          "disclaimer": {
+            "type": "string",
+            "title": "Disclaimer",
+            "default": "Pemeriksaan awal keluhan/cedera ini bersifat edukatif dan bukan diagnosis medis resmi."
+          }
+        },
+        "type": "object",
+        "required": [
+          "check_id",
+          "checked_at",
+          "detected_category",
+          "urgency_level",
+          "recommended_action_code",
+          "activity_clearance",
+          "summary",
+          "safety_message",
+          "consultation_recommended"
+        ],
+        "title": "PartnerInjuryCheckResponse"
+      },
+      "PartnerRecommendationItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "intensity": {
+            "type": "string",
+            "enum": [
+              "low",
+              "moderate",
+              "vigorous",
+              "rest_recovery"
+            ],
+            "title": "Intensity"
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency"
+          },
+          "precautions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Precautions"
+          },
+          "injury_safe": {
+            "type": "boolean",
+            "title": "Injury Safe",
+            "default": false
+          },
+          "readiness": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "needs_review",
+              "unavailable"
+            ],
+            "title": "Readiness",
+            "default": "ready"
+          },
+          "source": {
+            "$ref": "#/components/schemas/GuidanceSource"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "category",
+          "title",
+          "description",
+          "intensity",
+          "source"
+        ],
+        "title": "PartnerRecommendationItem"
       },
       "PasswordChangeRequest": {
         "properties": {
@@ -4686,6 +5345,47 @@
           "plans_count"
         ],
         "title": "ProgressSummaryResponse"
+      },
+      "RecommendedActionItem": {
+        "properties": {
+          "priority": {
+            "type": "string",
+            "enum": [
+              "immediate",
+              "short_term",
+              "monitoring"
+            ],
+            "title": "Priority"
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "emergency",
+              "medical_consultation",
+              "self_check",
+              "first_aid",
+              "activity_modification",
+              "monitoring"
+            ],
+            "title": "Action Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "instruction": {
+            "type": "string",
+            "title": "Instruction"
+          }
+        },
+        "type": "object",
+        "required": [
+          "priority",
+          "action_type",
+          "title",
+          "instruction"
+        ],
+        "title": "RecommendedActionItem"
       },
       "RegisterRequest": {
         "properties": {

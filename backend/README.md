@@ -21,7 +21,7 @@ Prefix core: `/api/v1` (kecuali `GET /health`). Prefix integrasi off-STB: `/inte
 
 | Konteks | Method & Path | Fungsi | Akses |
 |---|---|---|---|
-| System | `GET /health`, `GET /api/v1/system/capabilities` | Status layanan & kapabilitas aktual | Publik |
+| System | `GET /health`, `GET /api/health`, `GET /api/v1/health`, `GET /api/v1/system/capabilities` | Status layanan & kapabilitas aktual | Publik |
 | Identity & Access | `POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me` | Registrasi, login JWT, profil akun | Publik / Bearer |
 | Identity & Access | `POST /api/v1/consents/assessment-sharing`, `DELETE /api/v1/consents/assessment-sharing/{id}` | Pemberian & pencabutan izin berbagi hasil | Bearer `user` |
 | Personal Health Intelligence | `GET /api/v1/profile`, `PUT /api/v1/profile` | Profil kesehatan pengguna | Bearer pemilik |
@@ -33,7 +33,7 @@ Prefix core: `/api/v1` (kecuali `GET /health`). Prefix integrasi off-STB: `/inte
 | Medication Information & Safety Guidance | `GET /api/v1/assessments/{id}/medication-information` | Pencocokan informasi obat berbasis aturan & safety gate (terpisah dari ML) | Bearer `user` pemilik |
 | Consultation & Booking | `GET /api/v1/professionals`, `GET /api/v1/professionals/{id}/slots`, `POST /api/v1/bookings`, `GET /api/v1/bookings` | Direktori, slot, dan pemesanan konsultasi | Publik / Bearer |
 | Consultation & Booking | `GET /api/v1/professional/bookings/{id}/shared-assessment` | Ringkasan pra-konsultasi dengan izin aktif | Bearer `professional` |
-| Partner API (AmbatuFit) | `GET /api/v1/partner/professionals`, `GET /api/v1/partner/professionals/{id}/slots`, `POST /api/v1/partner/bookings` | Konsumsi layanan konsultasi oleh mitra | Header `X-API-Key` |
+| Partner API (AmbatuFit) | `GET /api/v1/partner/professionals`, `GET /api/v1/partner/professionals/{id}/slots`, `POST /api/v1/partner/bookings`, `GET /api/v1/partner/bookings`, `GET /api/v1/partner/recommendations/physical-activity`, `POST /api/v1/partner/injury-check` | Konsumsi layanan konsultasi, rekomendasi aktivitas fisik, dan triase nyeri/cedera oleh mitra | Header `X-API-Key` |
 | Off-STB Integration | `GET /integration/v1/nutrition/foods`, `GET /integration/v1/fitness/gyms`, `GET /integration/v1/status` | Adapter ternormalisasi AmbatuNoutrish & AmbatuMove | Bearer / `X-Service-Token` |
 
 ## Medication Information, Red-Flag Screening & Provenance
@@ -73,11 +73,15 @@ cd backend
 cp .env.example .env
 ```
 
-Isi konfigurasi produksi di `backend/.env` (`APP_ENV=production`, `JWT_SECRET`, `CORS_ORIGINS`, `TUNNEL_TOKEN`, dan URL layanan off-STB hanya bila sudah terverifikasi HTTPS), lalu jalankan container terbatas (core 256MB/0.5CPU, gateway 64MB/0.15CPU, tunnel 96MB/0.15CPU):
+Isi konfigurasi produksi di `backend/.env` (`APP_ENV=production`, `GATEWAY_PORT=80`, `JWT_SECRET`, `CORS_ORIGINS=https://ambatufit.stei.fun,...`, `PARTNER_API_KEYS`, serta `TUNNEL_TOKEN` jika memakai profile tunnel), pastikan port `80` bebas dari web server bawaan (`sudo ss -tlnp | grep :80`), lalu jalankan container terbatas (core 256MB/0.5CPU, gateway 64MB/0.15CPU, opsional tunnel 96MB/0.15CPU):
 
 ```bash
 docker compose config
-docker compose --profile tunnel up -d --build
+# Jika daemon cloudflared sudah berjalan di host STB (aaPanel :1122 + API :80):
+docker compose up -d --build
+# Atau jika menjalankan container cloudflared di Docker Compose:
+# docker compose --profile tunnel up -d --build
+docker compose exec core-service python scripts/seed_demo.py
 docker compose ps
 docker stats --no-stream
 ```

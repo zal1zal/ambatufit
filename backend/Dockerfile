@@ -23,9 +23,10 @@ RUN addgroup --system --gid 1001 ambatugroup && \
     adduser --system --uid 1001 --ingroup ambatugroup ambatuuser && \
     mkdir -p /data && chown -R ambatuuser:ambatugroup /data
 
-# Copy core service code and reviewed rule assets ONLY
+# Copy core service code, reviewed rule assets, and seed script ONLY
 COPY app/ ./app/
 COPY rules/ ./rules/
+COPY scripts/seed_demo.py ./scripts/seed_demo.py
 
 USER ambatuuser
 

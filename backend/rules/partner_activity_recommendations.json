@@ -1,0 +1,98 @@
+[
+  {
+    "id": "ACT-CARDIO-001",
+    "category": "physical_activity",
+    "goals": ["active_lifestyle", "general_wellbeing", "balanced_nutrition"],
+    "activity_tags": ["running", "cycling", "walking", "cardio", "aerobic", "kardio", "jalan", "lari", "sepeda"],
+    "title": "Kardio Intensitas Sedang Terukur (Jalan Cepat / Bersepeda)",
+    "description": "Lakukan jalan cepat, bersepeda santai, atau latihan aerobik ringan-sedang selama 30 menit per sesi (target 150 menit/minggu) sambil menjaga napas tetap teratur dan masih bisa berbicara nyaman.",
+    "intensity": "moderate",
+    "frequency": "4-5 kali per minggu, 30 menit/sesi",
+    "precautions": [
+      "Mulai dengan pemanasan dinamis 5-10 menit dan akhiri pendinginan bertahap.",
+      "Hentikan segera apabila muncul nyeri dada, pusing berputar, sesak napas tidak wajar, atau nyeri tajam pada sendi."
+    ],
+    "injury_safe": false,
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "who-physical-activity-guideline"
+    }
+  },
+  {
+    "id": "ACT-STRENGTH-001",
+    "category": "physical_activity",
+    "goals": ["muscle_gain", "active_lifestyle"],
+    "activity_tags": ["strength", "bodyweight", "gym", "resistance", "angkat beban", "kekuatan", "otot"],
+    "title": "Latihan Kekuatan Progresif & Pemulihan Otot",
+    "description": "Lakukan latihan beban atau bodyweight (squat terkontrol, push-up, row, plank) 2-3 kali seminggu dengan teknik stabil serta jeda pemulihan minimal 48 jam untuk kelompok otot yang sama.",
+    "intensity": "vigorous",
+    "frequency": "2-3 kali per minggu, 30-45 menit/sesi",
+    "precautions": [
+      "Utamakan postur dan rentang gerak aman sebelum menambah beban atau repetisi.",
+      "Tunda latihan beban pada area tubuh yang mengalami nyeri sendi, bengkak, atau cedera akut."
+    ],
+    "injury_safe": false,
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "acsm-resistance-training"
+    }
+  },
+  {
+    "id": "ACT-MOBILITY-001",
+    "category": "physical_activity",
+    "goals": ["general_wellbeing", "active_lifestyle", "balanced_nutrition", "muscle_gain"],
+    "activity_tags": ["yoga", "stretching", "mobility", "flexibility", "peregangan", "postur", "core"],
+    "title": "Mobilitas Sendi, Peregangan & Stabilisasi Postur Ringan",
+    "description": "Rangkaian peregangan lembut leher, bahu, punggung, dan pinggul selama 10-15 menit tanpa menahan napas atau memaksakan rentang gerak yang memicu nyeri.",
+    "intensity": "low",
+    "frequency": "Harian, 10-15 menit/sesi",
+    "precautions": [
+      "Lakukan gerakan perlahan dan hentikan bila muncul rasa nyeri tajam, kebas, atau kesemutan.",
+      "Jaga posisi tulang belakang tetap netral dan hindari memutar tubuh secara mendadak."
+    ],
+    "injury_safe": true,
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "acsm-mobility-flexibility"
+    }
+  },
+  {
+    "id": "ACT-LOWIMPACT-001",
+    "category": "physical_activity",
+    "goals": ["general_wellbeing", "balanced_nutrition", "active_lifestyle"],
+    "activity_tags": ["walking", "low_impact", "swimming", "jalan santai", "renang", "pemula"],
+    "title": "Aktivitas Low-Impact Ramah Sendi",
+    "description": "Jalan santai di permukaan datar atau latihan non-benturan di air/kursi selama 15-20 menit dengan intensitas ringan untuk menjaga sirkulasi tanpa membebani sendi.",
+    "intensity": "low",
+    "frequency": "3-5 kali per minggu, 15-20 menit/sesi",
+    "precautions": [
+      "Gunakan alas kaki yang nyaman dan pilih permukaan jalan yang rata.",
+      "Kurangi durasi atau istirahatkan area tubuh bila terasa nyeri bertambah setelah aktivitas."
+    ],
+    "injury_safe": true,
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "kemkes-germas-aktivitas-ringan"
+    }
+  },
+  {
+    "id": "ACT-RECOVERY-001",
+    "category": "recovery",
+    "goals": ["general_wellbeing", "balanced_nutrition", "active_lifestyle", "muscle_gain"],
+    "activity_tags": ["recovery", "rest", "istirahat", "pemulihan", "cedera", "injury"],
+    "title": "Pemulihan Aktif Aman & Pengurangan Beban Area Keluhan",
+    "description": "Prioritaskan istirahat relatif pada area yang nyeri/cedera, jaga hidrasi cukup (minimal 2 liter air/hari) serta tidur 7-8 jam, dan lakukan hanya gerak ringan pada bagian tubuh lain yang bebas keluhan bila nyaman.",
+    "intensity": "rest_recovery",
+    "frequency": "Sesuai fase pemulihan harian",
+    "precautions": [
+      "Jangan menumpu beban penuh atau melakukan latihan intensitas sedang/tinggi pada area yang nyeri atau bengkak.",
+      "Lakukan pemeriksaan mandiri awal atau konsultasikan ke dokter bila keluhan tidak membaik dalam 2-3 hari."
+    ],
+    "injury_safe": true,
+    "source": {
+      "provider_id": "ambatufit",
+      "reference_id": "ambatufit-injury-recovery-safety"
+    }
+  }
+]
+

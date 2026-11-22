@@ -1,11 +1,11 @@
 ### AmbatuFit STB Microservice - REST Client Tests
-### Ganti host di bawah ini sesuai lingkungan (Lokal vs STB vs Cloudflare Tunnel)
+### Ganti host di bawah ini sesuai lingkungan (Lokal vs STB Gateway Port 80 vs Cloudflare Tunnel)
 @baseUrl = http://127.0.0.1:8000
-# @baseUrl = http://127.0.0.1:8080
+# @baseUrl = http://127.0.0.1
 # @baseUrl = https://ambatufit.stei.fun
 
-### 1. Health Check (STB Gateway / Core)
-GET {{baseUrl}}/health
+### 1. Health Check (STB Gateway / Core / Cloudflare /api/*)
+GET {{baseUrl}}/api/v1/health
 Accept: application/json
 
 ### 2. System Capabilities Check
@@ -145,9 +145,32 @@ Content-Type: application/json
 GET {{baseUrl}}/api/v1/bookings
 Authorization: Bearer {{authToken}}
 
-### 19. Partner API: Konsumsi Direktori oleh AmbatuNoutrish / AmbatuMove (ambatumove)
-GET {{baseUrl}}/api/v1/partner/professionals?specialty=dietitian
-X-API-Key: noutrish-sec-key-123
+### 19. Partner API: Konsumsi Direktori Dokter oleh Mitra
+GET {{baseUrl}}/api/v1/partner/professionals?specialty=doctor
+X-API-Key: move-sec-key-456
+
+### 19b. Partner API: Rekomendasi Aktivitas Fisik (Normal vs Kondisi Cedera)
+GET {{baseUrl}}/api/v1/partner/recommendations/physical-activity?health_goal=active_lifestyle&activity_preference=running&has_injury=false
+X-API-Key: move-sec-key-456
+
+### 19c. Partner API: Pemeriksaan Awal Keluhan Nyeri / Cedera & Rekomendasi Aksi
+POST {{baseUrl}}/api/v1/partner/injury-check
+X-API-Key: move-sec-key-456
+Content-Type: application/json
+
+{
+  "external_user_ref": "move-user-001",
+  "complaint": "Lutut sakit dan bengkak setelah bermain futsal",
+  "body_part": "knee",
+  "pain_scale": 7,
+  "duration_days": 2,
+  "occurred_during_activity": "futsal",
+  "symptoms": ["bengkak", "nyeri_saat_menumpu"]
+}
+
+### 19d. Partner API: Daftar Booking Konsultasi Mitra
+GET {{baseUrl}}/api/v1/partner/bookings
+X-API-Key: move-sec-key-456
 
 ### 20. Katalog Informasi Obat Bebas & Obat Bebas Terbatas (Edukatif)
 GET {{baseUrl}}/api/v1/medications?limit=20&offset=0
