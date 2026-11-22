@@ -111,7 +111,36 @@ class ConsultationService:
             slot_id=booking.slot_id,
             status=booking.status,
             created_at=booking.created_at,
+            professional_name=booking.professional.display_name if booking.professional else None,
+            starts_at=booking.slot.starts_at if booking.slot else None,
+            ends_at=booking.slot.ends_at if booking.slot else None,
         )
+
+    def list_partner_bookings(
+        self,
+        provider_id: str,
+        external_user_ref: Optional[str] = None,
+    ) -> List[PartnerBookingResponse]:
+        prefix = f"{provider_id}:"
+        bookings = self.repo.list_partner_bookings(provider_id, external_user_ref=external_user_ref)
+        return [
+            PartnerBookingResponse(
+                id=b.id,
+                external_user_ref=(
+                    b.external_user_ref[len(prefix):]
+                    if b.external_user_ref and b.external_user_ref.startswith(prefix)
+                    else (b.external_user_ref or "")
+                ),
+                professional_id=b.professional_id,
+                slot_id=b.slot_id,
+                status=b.status,
+                created_at=b.created_at,
+                professional_name=b.professional.display_name if b.professional else None,
+                starts_at=b.slot.starts_at if b.slot else None,
+                ends_at=b.slot.ends_at if b.slot else None,
+            )
+            for b in bookings
+        ]
 
     def get_shared_assessment_for_professional(
         self,

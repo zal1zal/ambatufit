@@ -37,15 +37,23 @@ Verifikasi dilakukan terhadap repositori GitHub resmi, layanan FastAPI AmbatuFit
 
 ## 3. Langkah Deployment & Konfigurasi yang Diperlukan untuk Publikasi
 
-Agar `https://ambatufit.stei.fun` (atau domain HTTPS publik yang disetujui) aktif dan mengembalikan `HTTP 200 OK`:
+Konfigurasi Cloudflare Tunnel pada perangkat STB memisahkan root domain dan prefix API:
+- `https://ambatufit.stei.fun` (root) → `https://localhost:1122` (aaPanel)
+- `https://ambatufit.stei.fun/api/*` → `http://localhost:80` (AmbatuFit STB Nginx Gateway)
+- `https://katalogku-zikra.stei.fun` → `http://localhost:8080`
+
+Agar `https://ambatufit.stei.fun/api/*` aktif dan mengembalikan `HTTP 200 OK`:
 
 1. **Pada Perangkat STB / Host Produksi:**
-   - Pastikan Docker Engine & Docker Compose berjalan.
-   - Isi `TUNNEL_TOKEN=<token_cloudflare_tunnel_aktif>` dan `PARTNER_API_KEYS=<provider_id:api_key,...>` di dalam `backend/.env` (jangan dikomit ke Git).
+   - Pastikan Docker Engine & Docker Compose berjalan dan port `80` tidak bentrok dengan Nginx/Apache aaPanel (`sudo ss -tlnp | grep :80`).
+   - Isi `GATEWAY_PORT=80`, `CORS_ORIGINS=https://ambatufit.stei.fun`, dan `PARTNER_API_KEYS=<provider_id:api_key,...>` di dalam `backend/.env` (jangan dikomit ke Git).
 2. **Jalankan Stack Container STB:**
    ```bash
    cd backend
-   docker compose --profile tunnel up -d --build
+   docker compose up -d --build
+   docker compose exec core-service python scripts/seed_demo.py
    ```
+   *(Gunakan `docker compose --profile tunnel up -d --build` hanya apabila daemon `cloudflared` belum berjalan di host STB.)*
 3. **Verifikasi Publik Pasca-Start:**
-   - Pastikan `curl -i https://ambatufit.stei.fun/health`, `https://ambatufit.stei.fun/docs`, `https://ambatufit.stei.fun/openapi.json`, dan `https://ambatufit.stei.fun/api/v1/system/capabilities` seluruhnya mengembalikan `HTTP 200 OK`.
+   - Pastikan `curl -i https://ambatufit.stei.fun/api/health`, `https://ambatufit.stei.fun/api/v1/health`, `https://ambatufit.stei.fun/api/docs`, `https://ambatufit.stei.fun/api/openapi.json`, dan `https://ambatufit.stei.fun/api/v1/system/capabilities` seluruhnya mengembalikan `HTTP 200 OK` (bukan respon panel aaPanel).
+   - Jika endpoint `/api/*` masih diteruskan ke aaPanel `:1122`, periksa kembali aturan Path regex pada Order 2 di dashboard Cloudflare Zero Trust Tunnel.

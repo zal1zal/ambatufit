@@ -12,6 +12,7 @@ def test_b19_openapi_contract_generation():
     assert schema["info"]["title"] == "AmbatuFit STB Microservice"
     for path in (
         "/health",
+        "/api/v1/health",
         "/api/v1/assessments",
         "/api/v1/profile",
         "/api/v1/guidance",
@@ -20,6 +21,9 @@ def test_b19_openapi_contract_generation():
         "/api/v1/assessments/{id}/medication-information",
         "/api/v1/bookings",
         "/api/v1/partner/professionals",
+        "/api/v1/partner/bookings",
+        "/api/v1/partner/recommendations/physical-activity",
+        "/api/v1/partner/injury-check",
     ):
         assert path in schema["paths"]
 

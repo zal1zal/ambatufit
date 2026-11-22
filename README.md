@@ -15,13 +15,19 @@ Endpoint khusus integrasi lintas kelompok yang diautentikasi menggunakan header 
 - **Autentikasi**: Header `X-API-Key: <partner_api_key>`
   - Dikonfigurasi pada server melalui environment variable `PARTNER_API_KEYS` (format: `"provider_id:api_key,provider_id2:api_key2"`).
   - Nilai default development di `backend/app/config.py`: `ambatunoutrish:noutrish-sec-key-123,ambatomove:move-sec-key-456` *(ganti pada environment production)*.
-- **Routing Gateway STB**: Semua path `/api/...` dan `/health` diteruskan oleh Nginx gateway (`backend/nginx.conf`) dengan rate limit `15r/s` (`burst=20`).
+- **Routing Gateway STB & Cloudflare Tunnel**:
+  - `https://ambatufit.stei.fun/api/*` diteruskan ke `http://localhost:80` (Nginx gateway `backend/nginx.conf`, rate limit `15r/s`, `burst=20`).
+  - `https://ambatufit.stei.fun` (root) mengarah ke `https://localhost:1122` (aaPanel).
+  - Endpoint health & dokumentasi yang dapat diakses via prefix `/api`: `/api/health`, `/api/v1/health`, `/api/docs`, `/api/redoc`, dan `/api/openapi.json` (selain `/health`, `/docs`, `/redoc`, `/openapi.json` pada akses lokal/langsung).
 
 | Method | Endpoint | Deskripsi | Query / Request Body | Response (`200` / `201`) |
 | :--- | :--- | :--- | :--- | :--- |
 | `GET` | `/api/v1/partner/professionals` | Mengambil daftar tenaga profesional aktif (`doctor` / `dietitian`). | Query opsional: `specialty=doctor\|dietitian` | `PaginatedResponse[ProfessionalDTO]` (`items`, `total`) |
 | `GET` | `/api/v1/partner/professionals/{id}/slots` | Mengambil daftar slot jadwal konsultasi milik profesional tertentu. | Path param: `id` (ID profesional) | `PaginatedResponse[SlotDTO]` (`items`, `total`) |
-| `POST` | `/api/v1/partner/bookings` | Membuat pemesanan konsultasi atas nama pengguna dari aplikasi partner. | JSON: `{"external_user_ref": "...", "professional_id": "...", "slot_id": "..."}` | `201 Created`: `PartnerBookingResponse` (`id`, `external_user_ref`, `professional_id`, `slot_id`, `status`, `created_at`) |
+| `POST` | `/api/v1/partner/bookings` | Membuat pemesanan konsultasi atas nama pengguna dari aplikasi partner. | JSON: `{"external_user_ref": "...", "professional_id": "...", "slot_id": "..."}` | `201 Created`: `PartnerBookingResponse` (`id`, `external_user_ref`, `professional_id`, `slot_id`, `status`, `created_at`, `professional_name`, `starts_at`, `ends_at`) |
+| `GET` | `/api/v1/partner/bookings` | Melihat riwayat booking konsultasi milik partner yang sedang diautentikasi. | Query opsional: `external_user_ref` | `PaginatedResponse[PartnerBookingResponse]` (`items`, `total`) |
+| `GET` | `/api/v1/partner/recommendations/physical-activity` | Rekomendasi aktivitas fisik dengan safety gate otomatis jika ada keluhan/cedera. | Query opsional: `health_goal`, `activity_preference`, `has_injury`, `injury_area`, `include_general` | `PartnerActivityRecommendationsResponse` (`safety_status`, `consultation_recommended`, `recommended_professionals`, `items`, `total`) |
+| `POST` | `/api/v1/partner/injury-check` | Pemeriksaan awal keluhan sakit/cedera untuk mendapatkan triase urgensi, langkah pengecekan awal, pertolongan pertama, dan rekomendasi konsultasi dokter. | JSON: `{"complaint": "...", "body_part": "...", "pain_scale": 0..10, "duration_days": 1, "symptoms": [...]}` | `PartnerInjuryCheckResponse` (`urgency_level`, `recommended_action_code`, `activity_clearance`, `checks_to_perform`, `recommended_actions`, `recommended_professionals`) |
 
 #### Contoh Request & Response Partner API
 
@@ -98,6 +104,35 @@ Response (`201 Created`):
 
 *(Catatan: Jika slot sudah dipesan atau tidak tersedia, endpoint mengembalikan `409 Conflict`.)*
 
+**4) Lihat Rekomendasi Aktivitas Fisik (atau Mode Waspada Cedera)**
+
+```http
+GET /api/v1/partner/recommendations/physical-activity?health_goal=active_lifestyle&activity_preference=running&has_injury=false
+X-API-Key: <partner_api_key>
+```
+
+*(Jika `has_injury=true` atau `injury_area` diisi, endpoint otomatis mengaktifkan mode safety gate: `safety_status="caution_injury_reported"`, latihan intensitas sedang/berat ditunda, hanya rekomendasi aman/pemulihan yang dikembalikan, dan daftar dokter disertakan di `recommended_professionals`.)*
+
+**5) Pemeriksaan Keluhan Sakit / Cedera & Rekomendasi Tindakan Pengecekan**
+
+```http
+POST /api/v1/partner/injury-check
+X-API-Key: <partner_api_key>
+Content-Type: application/json
+
+{
+  "external_user_ref": "user-ext-001",
+  "complaint": "Lutut sakit dan bengkak setelah bermain futsal",
+  "body_part": "knee",
+  "pain_scale": 7,
+  "duration_days": 2,
+  "occurred_during_activity": "futsal",
+  "symptoms": ["bengkak", "tidak_bisa_menumpu"]
+}
+```
+
+Response (`200 OK`) menyertakan `urgency_level` (`urgent` / `review_recommended` / `self_care`), `recommended_action_code` (`seek_emergency_care` / `consult_doctor` / `self_care_and_monitor`), `activity_clearance`, daftar `checks_to_perform`, `recommended_actions`, `when_to_seek_urgent_care`, `recommended_professionals` (dokter aktif), serta `safe_activity_alternatives` (kosong `[]` bila `urgent`).
+
 ---
 
 ### 2. Public & System Endpoints (Tanpa Autentikasi)
@@ -106,7 +141,8 @@ Endpoint publik yang dapat digunakan untuk pengecekan status layanan maupun refe
 
 | Method | Endpoint | Deskripsi |
 | :--- | :--- | :--- |
-| `GET` | `/health` | Health check status layanan STB Gateway / Core API. |
+| `GET` | `/api/health`, `/api/v1/health`, `/health` | Health check status layanan STB Gateway / Core API (gunakan `/api/health` atau `/api/v1/health` melalui Cloudflare Tunnel). |
+| `GET` | `/api/docs`, `/api/openapi.json` | Dokumentasi Swagger UI & skema OpenAPI melalui prefix `/api` Cloudflare Tunnel (lokal: `/docs`, `/openapi.json`). |
 | `GET` | `/api/v1/system/capabilities` | Status kesiapan kapabilitas sistem (AI inference, integrasi, dll.). |
 | `GET` | `/api/v1/assessments/evidences` | Katalog gejala/evidence terstruktur (DDXPlus). |
 | `GET` | `/api/v1/professionals` | Direktori tenaga profesional publik (opsional `?specialty=doctor\|dietitian`). |

@@ -79,6 +79,19 @@ class ConsultationRepository:
     def list_user_bookings(self, user_id: str) -> List[Booking]:
         return self.db.query(Booking).filter(Booking.user_id == user_id).order_by(Booking.created_at.desc()).all()
 
+    def list_partner_bookings(
+        self,
+        provider_id: str,
+        external_user_ref: Optional[str] = None,
+    ) -> List[Booking]:
+        prefix = f"{provider_id}:"
+        q = self.db.query(Booking).filter(Booking.external_user_ref.isnot(None))
+        if external_user_ref:
+            q = q.filter(Booking.external_user_ref == f"{prefix}{external_user_ref}")
+        else:
+            q = q.filter(Booking.external_user_ref.like(f"{prefix}%"))
+        return q.order_by(Booking.created_at.desc()).all()
+
     def get_booking(self, booking_id: str) -> Optional[Booking]:
         return self.db.query(Booking).filter(Booking.id == booking_id).first()
 

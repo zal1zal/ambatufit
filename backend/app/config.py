@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "ambatufit-development-jwt-super-secret-key-32chars"
     JWT_ALGORITHM: str = "HS256"
     JWT_TTL_MINUTES: int = 120
-    CORS_ORIGINS: str = "http://localhost:19006,http://localhost:8081,http://127.0.0.1:19006,http://localhost:8080"
+    CORS_ORIGINS: str = "https://ambatufit.stei.fun,http://localhost:19006,http://localhost:8081,http://127.0.0.1:19006,http://localhost:8080"
     
     # Off-STB AI service
     AI_INFERENCE_URL: str = "http://127.0.0.1:8100/internal/v1/infer"

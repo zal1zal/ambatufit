@@ -4,6 +4,7 @@ import uuid
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import JSONResponse
 
 from app.config import settings
@@ -107,13 +108,48 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     )
 
 
-@app.get("/health", tags=["System"])
-def health_check():
+def _health_payload():
     return {
         "status": "healthy",
         "service": "ambatufit-core",
         "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
     }
+
+
+@app.get("/health", tags=["System"])
+def health_check():
+    return _health_payload()
+
+
+@app.get("/api/health", include_in_schema=False)
+def api_health_check():
+    return _health_payload()
+
+
+@app.get("/api/v1/health", tags=["System"])
+def api_v1_health_check():
+    return _health_payload()
+
+
+@app.get("/api/openapi.json", include_in_schema=False)
+def api_prefixed_openapi():
+    return JSONResponse(app.openapi())
+
+
+@app.get("/api/docs", include_in_schema=False)
+def api_prefixed_swagger_ui():
+    return get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title=f"{app.title} - Swagger UI",
+    )
+
+
+@app.get("/api/redoc", include_in_schema=False)
+def api_prefixed_redoc():
+    return get_redoc_html(
+        openapi_url="/api/openapi.json",
+        title=f"{app.title} - ReDoc",
+    )
 
 
 app.include_router(identity_router, prefix="/api/v1")
@@ -124,14 +160,15 @@ app.include_router(chat_router, prefix="/api/v1")
 app.include_router(plan_router, prefix="/api/v1")
 app.include_router(consultation_router, prefix="/api/v1")
 
-# Mirror partner integration routes on core app (hidden from core OpenAPI contract) so mobile Wi-Fi clients
-# work reliably even when port 8200 is unreachable or filtered on LAN.
-from fastapi import APIRouter
-from integration.server import get_fitness_gyms, get_nutrition_foods, get_status, authorize as integration_authorize
-from fastapi import Depends
+# Mirror partner integration routes on core app when running full backend repo (excluded on minimal STB Docker image).
+try:
+    from fastapi import APIRouter, Depends
+    from integration.server import get_fitness_gyms, get_nutrition_foods, get_status, authorize as integration_authorize
 
-_integration_mirror = APIRouter(prefix="/integration/v1", include_in_schema=False)
-_integration_mirror.add_api_route("/status", get_status, methods=["GET"], dependencies=[Depends(integration_authorize)])
-_integration_mirror.add_api_route("/nutrition/foods", get_nutrition_foods, methods=["GET"], dependencies=[Depends(integration_authorize)])
-_integration_mirror.add_api_route("/fitness/gyms", get_fitness_gyms, methods=["GET"], dependencies=[Depends(integration_authorize)])
-app.include_router(_integration_mirror)
+    _integration_mirror = APIRouter(prefix="/integration/v1", include_in_schema=False)
+    _integration_mirror.add_api_route("/status", get_status, methods=["GET"], dependencies=[Depends(integration_authorize)])
+    _integration_mirror.add_api_route("/nutrition/foods", get_nutrition_foods, methods=["GET"], dependencies=[Depends(integration_authorize)])
+    _integration_mirror.add_api_route("/fitness/gyms", get_fitness_gyms, methods=["GET"], dependencies=[Depends(integration_authorize)])
+    app.include_router(_integration_mirror)
+except ImportError:
+    pass
