@@ -1,0 +1,8 @@
+services:
+  core-service:
+    volumes:
+      - type: bind
+        source: /mnt/flashdisk/ambatufit/data
+        target: /data
+        bind:
+          create_host_path: false
