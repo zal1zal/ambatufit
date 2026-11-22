@@ -7,14 +7,27 @@ import {
   evidenceSchema,
   monitoringInputSchema,
   profileUpdateSchema,
+  registerInputSchema,
+  accountUpdateInputSchema,
+  passwordChangeInputSchema,
+  passwordChangeResponseSchema,
+  logoutResponseSchema,
   listSchema, userSchema, loginSchema, profileSchema, assessmentListItemSchema,
-  guidanceSchema, monitoringSchema, professionalSchema, slotSchema, bookingSchema,
+  guidanceSchema, monitoringSchema, medicationDetailSchema, medicationInformationSchema,
+  professionalSchema, slotSchema, bookingSchema,
   consentInputSchema, consentSchema, capabilitiesSchema, sharedAssessmentSchema,
   nutritionSchema, gymsSchema,
+  diseaseSearchSchema, diseaseDetailSchema,
+  medicationProductSearchSchema, medicationProductSchema,
+  conversationSchema, chatMessageSchema, chatTurnSchema,
+  personalizedPlanSchema, progressSummarySchema,
 } from '../contracts/schemas';
 
-const CORE = process.env.EXPO_PUBLIC_API_BASE_URL;
-const INTEGRATION = process.env.EXPO_PUBLIC_INTEGRATION_API_BASE_URL;
+const DEFAULT_CORE_URL = 'http://192.168.3.107:8000/api/v1';
+const DEFAULT_INTEGRATION_URL = 'http://192.168.3.107:8200/integration/v1';
+
+const CORE = process.env.EXPO_PUBLIC_API_BASE_URL || DEFAULT_CORE_URL;
+const INTEGRATION = process.env.EXPO_PUBLIC_INTEGRATION_API_BASE_URL || DEFAULT_INTEGRATION_URL;
 const TIMEOUT = 10000;
 export function requireApiBaseUrls({ integration = false } = {}) {
   if (!validBase(CORE, '/api/v1')) throw new Error('EXPO_PUBLIC_API_BASE_URL must end in /api/v1');
@@ -87,7 +100,19 @@ async function request({
   }
 }
 const core = (path, method = 'GET', body) => request({ path, method, body });
-const partner = (path) => request({ base: INTEGRATION, path, timeout: 8000 });
+const partner = async (path) => {
+  try {
+    return await request({ base: INTEGRATION, path, timeout: 8000 });
+  } catch (err) {
+    if ((err?.code === 'network_error' || err?.code === 'timeout') && CORE) {
+      const coreIntegrationBase = CORE.replace(/\/api\/v1\/?$/, '/integration/v1');
+      if (coreIntegrationBase !== INTEGRATION) {
+        return await request({ base: coreIntegrationBase, path, timeout: 8000 });
+      }
+    }
+    throw err;
+  }
+};
 const checked = async (schema, response) => validateResponse(schema, await response);
 const qs = (values) => {
   const p = new URLSearchParams();
@@ -119,12 +144,47 @@ function validateResponse(schema, value) {
 }
 export const ApiService = {
   auth: {
+    register: (email, password, displayName) =>
+      checked(
+        userSchema,
+        request({
+          path: '/auth/register',
+          method: 'POST',
+          body: validate(registerInputSchema, {
+            email,
+            password,
+            ...(displayName !== undefined ? { display_name: displayName } : {}),
+          }),
+          auth: false,
+        }),
+      ),
     login: async (email, password) => {
       const data = await checked(loginSchema, request({ path: '/auth/login', method: 'POST', body: { email, password }, auth: false }));
       if (data?.access_token) await AuthSession.set(data.access_token);
       return data;
     },
     me: () => checked(userSchema, core('/auth/me')),
+    updateAccount: (payload) =>
+      checked(userSchema, core('/auth/me', 'PUT', validate(accountUpdateInputSchema, payload))),
+    changePassword: (currentPassword, newPassword) =>
+      checked(
+        passwordChangeResponseSchema,
+        core(
+          '/auth/change-password',
+          'POST',
+          validate(passwordChangeInputSchema, {
+            current_password: currentPassword,
+            new_password: newPassword,
+          }),
+        ),
+      ),
+    logout: async () => {
+      try {
+        return await checked(logoutResponseSchema, core('/auth/logout', 'POST'));
+      } finally {
+        await AuthSession.clear();
+      }
+    },
   },
   profile: {
     get: () => checked(profileSchema, core('/profile')),
@@ -145,6 +205,7 @@ export const ApiService = {
         assessmentResultSchema,
         await core('/assessments', 'POST', validate(assessmentInputSchema, input)),
       ),
+    analyzeText: (payload) => core('/assessments/analyze-text', 'POST', payload),
     list: (limit = 20, offset = 0) => checked(listSchema(assessmentListItemSchema), core(`/assessments${qs({ limit, offset })}`)),
     get: async (id) =>
       validateResponse(
@@ -152,7 +213,23 @@ export const ApiService = {
         await core(`/assessments/${encodeURIComponent(id)}`),
       ),
   },
-  guidance: { get: () => checked(guidanceSchema, core('/guidance')) },
+  guidance: {
+    get: () => checked(guidanceSchema, core('/guidance')),
+    ask: (payload) => core('/guidance/ask', 'POST', payload),
+  },
+  medications: {
+    search: ({ query, indication, limit = 20, offset = 0 } = {}) =>
+      checked(
+        medicationInformationSchema,
+        core(`/medications${qs({ query, indication, limit, offset })}`),
+      ),
+    get: (id) => checked(medicationDetailSchema, core(`/medications/${encodeURIComponent(id)}`)),
+    forAssessment: (assessmentId) =>
+      checked(
+        medicationInformationSchema,
+        core(`/assessments/${encodeURIComponent(assessmentId)}/medication-information`),
+      ),
+  },
   monitoring: {
     list: (limit = 20, offset = 0) => checked(listSchema(monitoringSchema), core(`/monitoring/entries${qs({ limit, offset })}`)),
     create: (entry) => checked(monitoringSchema, core('/monitoring/entries', 'POST', validate(monitoringInputSchema, entry))),
@@ -182,6 +259,49 @@ export const ApiService = {
   professional: {
     sharedAssessment: (id) =>
       checked(sharedAssessmentSchema, core(`/professional/bookings/${encodeURIComponent(id)}/shared-assessment`)),
+  },
+  diseases: {
+    search: (query = '', limit = 10, offset = 0) =>
+      checked(diseaseSearchSchema, core(`/diseases${qs({ query, limit, offset })}`)),
+    get: (id) => checked(diseaseDetailSchema, core(`/diseases/${encodeURIComponent(id)}`)),
+  },
+  knowledgeMedications: {
+    search: (query = '', limit = 10, offset = 0) =>
+      checked(
+        medicationProductSearchSchema,
+        core(`/knowledge/medications${qs({ query, limit, offset })}`),
+      ),
+    get: (id) =>
+      checked(medicationProductSchema, core(`/knowledge/medications/${encodeURIComponent(id)}`)),
+  },
+  conversations: {
+    list: () => checked(listSchema(conversationSchema), core('/conversations')),
+    create: (title) =>
+      checked(conversationSchema, core('/conversations', 'POST', { ...(title ? { title } : {}) })),
+    messages: (id) =>
+      checked(listSchema(chatMessageSchema), core(`/conversations/${encodeURIComponent(id)}/messages`)),
+    sendMessage: (id, message) =>
+      checked(
+        chatTurnSchema,
+        request({ path: `/conversations/${encodeURIComponent(id)}/messages`, method: 'POST', body: { message }, timeout: 25000 }),
+      ),
+    remove: (id) => core(`/conversations/${encodeURIComponent(id)}`, 'DELETE'),
+  },
+  plans: {
+    list: () => checked(listSchema(personalizedPlanSchema), core('/plans')),
+    get: (id) => checked(personalizedPlanSchema, core(`/plans/${encodeURIComponent(id)}`)),
+    createDraft: (payload = {}) =>
+      checked(personalizedPlanSchema, core('/plans/draft', 'POST', payload)),
+    activate: (id) =>
+      checked(personalizedPlanSchema, core(`/plans/${encodeURIComponent(id)}/activate`, 'POST')),
+    revise: (id, payload) =>
+      checked(
+        personalizedPlanSchema,
+        core(`/plans/${encodeURIComponent(id)}/revise`, 'POST', payload),
+      ),
+  },
+  progress: {
+    summary: () => checked(progressSummarySchema, core('/progress/summary')),
   },
   system: { capabilities: () => checked(capabilitiesSchema, core('/system/capabilities')) },
 };

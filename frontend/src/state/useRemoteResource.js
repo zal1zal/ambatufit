@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+
 export function useRemoteResource(loader, deps = []) {
   const [state, setState] = useState({ status: 'idle', data: null, error: null });
   const reload = useCallback(async () => {

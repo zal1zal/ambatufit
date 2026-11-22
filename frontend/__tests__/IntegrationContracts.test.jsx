@@ -19,6 +19,29 @@ test('evidence renders canonical question_id and option label_id and toggles mul
   expect(change).toHaveBeenLastCalledWith([]);
 });
 
+test('evidence renders free-text input when options exceed 5 choices', () => {
+  const change = jest.fn();
+  const manyOptions = Array.from({ length: 8 }, (_, idx) => ({
+    value: `V_${idx}`,
+    label_id: `Lokasi ${idx}`,
+  }));
+  const view = render(
+    <EvidenceInput
+      evidence={{
+        evidence_code: 'E_152',
+        question_id: 'Di bagian tubuh mana pembengkakan tersebut terjadi?',
+        value_type: 'multichoice',
+        options: manyOptions,
+      }}
+      value={undefined}
+      onChange={change}
+    />,
+  );
+  const input = view.getByLabelText('Di bagian tubuh mana pembengkakan tersebut terjadi?');
+  fireEvent.changeText(input, 'pergelangan kaki');
+  expect(change).toHaveBeenLastCalledWith(['pergelangan kaki']);
+});
+
 test.each(['ready', 'needs_review'])('guidance uses item readiness %s and controls gym action', async (readiness) => {
   ApiService.guidance.get.mockResolvedValue({ items: [{ id: 'g', title: 'Panduan server', description: 'Informasi', category: 'physical_activity', readiness, source: { provider_id: 'ambatufit' } }], provider_status: {} });
   const view = render(<GuidanceScreen navigation={navigation} />);
@@ -27,9 +50,10 @@ test.each(['ready', 'needs_review'])('guidance uses item readiness %s and contro
   if (readiness === 'needs_review') expect(view.getByText('Perlu peninjauan profesional sebelum aktivitas fisik.')).toBeTruthy();
 });
 
-test('home reads capability string from core response', async () => {
-  ApiService.system.capabilities.mockResolvedValue({ ai_inference: 'available' });
+test('home renders clear senior-friendly Indonesian modules without system jargon', async () => {
   ApiService.guidance.get.mockResolvedValue({ items: [], provider_status: {} });
   const view = render(<HomeScreen navigation={navigation} />);
-  await waitFor(() => expect(view.getByText('AI: TERSEDIA')).toBeTruthy());
+  await waitFor(() => expect(view.getByText('Tanya Asisten & Cek Gejala')).toBeTruthy());
+  expect(view.getByText('Informasi Obat & Scan Barcode BPOM')).toBeTruthy();
+  expect(view.queryByText(/AI: TERSEDIA/i)).toBeNull();
 });

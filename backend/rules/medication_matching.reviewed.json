@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "review_status": "pending_clinical_review",
+  "note": "Rule-based general-indication mappings independent of DDXPlus ML predictions. Entries not marked review_status='reviewed' are automatically excluded.",
+  "restricted_evidence_codes": [],
+  "mappings": []
+}
+

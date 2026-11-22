@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import pytest
@@ -8,12 +9,12 @@ from sqlalchemy.orm import sessionmaker
 # Set test environment
 os.environ["APP_ENV"] = "test"
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ["AI_INFERENCE_URL"] = "http://127.0.0.1:8100/internal/v1/infer"
+os.environ["AI_INFERENCE_URL"] = ""
 os.environ["AI_INFERENCE_TOKEN"] = "test-ai-token"
 os.environ["INTEGRATION_API_BASE_URL"] = "http://127.0.0.1:8200/integration/v1"
 os.environ["INTEGRATION_API_TOKEN"] = "test-integration-token"
 os.environ["INTEGRATION_MODE"] = "mock"
-os.environ["PARTNER_API_KEYS"] = "ambatunoutrish:noutrish-sec-key-123,ambatomove:move-sec-key-456"
+os.environ["PARTNER_API_KEYS"] = "ambatunoutrish:noutrish-sec-key-123,ambatumove:move-sec-key-456"
 
 # Ensure backend directory is in sys.path
 backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -114,4 +115,47 @@ def demo_professional(db_session):
 @pytest.fixture
 def demo_pro_token(demo_professional):
     return create_access_token(user_id=demo_professional.id, role=demo_professional.role, email=demo_professional.email)
+
+
+@pytest.fixture
+def reviewed_red_flag_rules(monkeypatch, tmp_path):
+    """Synthetic reviewed red-flag rules bound to official DDXPlus codes for technical tests."""
+    from app.contexts.personal_health_intelligence import screening
+
+    rules_file = tmp_path / "red_flags.test_reviewed.json"
+    rules_file.write_text(
+        json.dumps(
+            [
+                {
+                    "rule_id": "TEST-RF-URGENT",
+                    "category": "cardiopulmonary_emergency",
+                    "evidence_codes": ["E_14", "E_66"],
+                    "condition": "Synthetic test urgent red-flag trigger",
+                    "severity": "urgent",
+                    "message": "Gejala yang Anda laporkan mungkin memerlukan pertolongan medis segera. Segera hubungi layanan darurat atau fasilitas kesehatan terdekat.",
+                    "source_url": "https://example.invalid/reviewed-urgent-test",
+                    "reviewed_by": "Synthetic Test Reviewer",
+                    "reviewed_at": "2026-11-21T00:00:00Z",
+                    "rule_version": "test-1.0",
+                    "review_status": "reviewed",
+                },
+                {
+                    "rule_id": "TEST-RF-REVIEW",
+                    "category": "hemoptysis_evaluation",
+                    "evidence_codes": ["E_45"],
+                    "condition": "Synthetic test review_recommended trigger",
+                    "severity": "review_recommended",
+                    "message": "Keluhan ini disarankan untuk segera ditinjau oleh tenaga kesehatan.",
+                    "source_url": "https://example.invalid/reviewed-moderate-test",
+                    "reviewed_by": "Synthetic Test Reviewer",
+                    "reviewed_at": "2026-11-21T00:00:00Z",
+                    "rule_version": "test-1.0",
+                    "review_status": "reviewed",
+                },
+            ]
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(screening, "RED_FLAGS_FILE", rules_file)
+    return rules_file
 

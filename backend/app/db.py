@@ -1,7 +1,7 @@
 import json
 import os
-from datetime import datetime
-from typing import Any, List, Optional
+from datetime import datetime, timezone
+from typing import List
 from sqlalchemy import (
     create_engine,
     Column,
@@ -11,10 +11,15 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Text,
-    UniqueConstraint,
+    inspect,
+    text,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from app.config import settings
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # Ensure sqlite directory exists
 if settings.DATABASE_URL.startswith("sqlite:///"):
@@ -37,8 +42,10 @@ class User(Base):
 
     id = Column(String(64), primary_key=True, index=True)
     email = Column(String(128), unique=True, index=True, nullable=False)
+    display_name = Column(String(128), nullable=True)
     password_hash = Column(String(255), nullable=False)
     role = Column(String(32), default="user", nullable=False)  # user | professional | partner
+    token_version = Column(Integer, default=1, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     profile = relationship("HealthProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
@@ -47,10 +54,20 @@ class User(Base):
     bookings = relationship("Booking", back_populates="user", foreign_keys="Booking.user_id")
 
 
+class RevokedToken(Base):
+    __tablename__ = "revoked_tokens"
+
+    jti = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    revoked_at = Column(DateTime, default=utc_now, nullable=False)
+    expires_at = Column(DateTime, nullable=True)
+
+
 class HealthProfile(Base):
     __tablename__ = "health_profiles"
 
     user_id = Column(String(64), ForeignKey("users.id"), primary_key=True)
+    display_name = Column(String(128), nullable=True)
     age_years = Column(Integer, nullable=True)
     sex_for_model = Column(String(16), default="unknown", nullable=False)  # M | F | unknown
     health_goal = Column(String(64), default="general_wellbeing", nullable=False)
@@ -136,6 +153,7 @@ class MonitoringEntry(Base):
     recorded_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     wellbeing_note = Column(Text, nullable=False)
     symptom_tags_json = Column(Text, default="[]", nullable=False)
+    meal_logs_json = Column(Text, default="[]", nullable=False)
 
     user = relationship("User", back_populates="monitoring_entries")
 
@@ -145,10 +163,43 @@ class GuidanceSnapshot(Base):
 
     id = Column(String(64), primary_key=True, index=True)
     user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
-    generated_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    generated_at = Column(DateTime, default=utc_now, nullable=False)
     rule_version = Column(String(32), default="1.0.0", nullable=False)
     items_json = Column(Text, nullable=False)
     provider_status_json = Column(Text, nullable=False)
+
+
+class MedicationCatalogItem(Base):
+    __tablename__ = "medication_catalog_items"
+
+    id = Column(String(64), primary_key=True, index=True)
+    display_name = Column(String(128), nullable=False)
+    active_ingredient = Column(String(128), nullable=False)
+    category = Column(String(32), nullable=False)  # obat_bebas | obat_bebas_terbatas
+    general_indications_json = Column(Text, default="[]", nullable=False)
+    warnings_json = Column(Text, default="[]", nullable=False)
+    contraindications_json = Column(Text, default="[]", nullable=False)
+    source_reference_id = Column(String(128), nullable=False)
+    source_title = Column(String(255), nullable=False)
+    source_url = Column(String(512), nullable=False)
+    verified_at = Column(DateTime, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    review_status = Column(String(32), default="pending_review", nullable=False)
+    review_version = Column(String(32), default="1.0.0", nullable=False)
+
+
+class MedicationInformationMapping(Base):
+    __tablename__ = "medication_information_mappings"
+
+    id = Column(String(64), primary_key=True, index=True)
+    indication_key = Column(String(64), index=True, nullable=False)
+    evidence_codes_json = Column(Text, default="[]", nullable=False)
+    medication_id = Column(String(64), ForeignKey("medication_catalog_items.id"), index=True, nullable=False)
+    rule_id = Column(String(64), nullable=False)
+    source_reference_id = Column(String(128), nullable=False)
+    review_status = Column(String(32), default="pending_review", nullable=False)
+    review_version = Column(String(32), default="1.0.0", nullable=False)
+    expires_at = Column(DateTime, nullable=True)
 
 
 class Professional(Base):
@@ -207,6 +258,60 @@ class AssessmentShareConsent(Base):
     revoked_at = Column(DateTime, nullable=True)
 
 
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    title = Column(String(160), nullable=False)
+    active_topic = Column(String(160), nullable=True)
+    summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+    messages = relationship("ConversationMessage", back_populates="conversation", cascade="all, delete-orphan")
+
+
+class ConversationMessage(Base):
+    __tablename__ = "conversation_messages"
+
+    id = Column(String(64), primary_key=True, index=True)
+    conversation_id = Column(String(64), ForeignKey("conversations.id"), index=True, nullable=False)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    role = Column(String(24), nullable=False)
+    content = Column(Text, nullable=False)
+    intent = Column(String(64), nullable=True)
+    citations_json = Column(Text, default="[]", nullable=False)
+    safety_alert = Column(Boolean, default=False, nullable=False)
+    generation_mode = Column(String(64), nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+
+    conversation = relationship("Conversation", back_populates="messages")
+
+
+class PersonalizedPlan(Base):
+    __tablename__ = "personalized_plans"
+
+    id = Column(String(64), primary_key=True, index=True)
+    user_id = Column(String(64), ForeignKey("users.id"), index=True, nullable=False)
+    version = Column(Integer, default=1, nullable=False)
+    parent_plan_id = Column(String(64), nullable=True)
+    status = Column(String(32), default="draft", nullable=False)  # draft | active | completed | needs_review | archived
+    goal = Column(String(64), nullable=False)
+    profile_snapshot_json = Column(Text, default="{}", nullable=False)
+    safety_level = Column(String(32), default="none", nullable=False)
+    safety_notes_json = Column(Text, default="[]", nullable=False)
+    habits_json = Column(Text, default="[]", nullable=False)
+    nutrition_section_json = Column(Text, default="{}", nullable=False)
+    activity_section_json = Column(Text, default="{}", nullable=False)
+    monitoring_guidance_json = Column(Text, default="[]", nullable=False)
+    rag_citations_json = Column(Text, default="[]", nullable=False)
+    clarification_questions_json = Column(Text, default="[]", nullable=False)
+    revision_reason = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -217,4 +322,25 @@ def get_db():
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    inspector = inspect(engine)
+    alter_statements = []
+    if inspector.has_table("users"):
+        user_cols = {c["name"] for c in inspector.get_columns("users")}
+        if "display_name" not in user_cols:
+            alter_statements.append("ALTER TABLE users ADD COLUMN display_name VARCHAR(128)")
+        if "token_version" not in user_cols:
+            alter_statements.append("ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1")
+    if inspector.has_table("health_profiles"):
+        prof_cols = {c["name"] for c in inspector.get_columns("health_profiles")}
+        if "display_name" not in prof_cols:
+            alter_statements.append("ALTER TABLE health_profiles ADD COLUMN display_name VARCHAR(128)")
+    if inspector.has_table("monitoring_entries"):
+        mon_cols = {c["name"] for c in inspector.get_columns("monitoring_entries")}
+        if "meal_logs_json" not in mon_cols:
+            alter_statements.append("ALTER TABLE monitoring_entries ADD COLUMN meal_logs_json TEXT NOT NULL DEFAULT '[]'")
+    if alter_statements:
+        with engine.begin() as conn:
+            for stmt in alter_statements:
+                conn.execute(text(stmt))
+
 

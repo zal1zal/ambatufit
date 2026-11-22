@@ -2,7 +2,7 @@ import asyncio
 from fastapi.testclient import TestClient
 from integration.server import app
 from integration.adapters.ambatunoutrish import AmbatuNoutrishAdapter
-from integration.adapters.ambatomove import AmbatoMoveAdapter
+from integration.adapters.ambatumove import AmbatuMoveAdapter
 from app.config import Settings
 import httpx
 import pytest
@@ -10,7 +10,7 @@ import pytest
 
 def test_missing_partners_do_not_return_synthetic_live_data():
     assert asyncio.run(AmbatuNoutrishAdapter().get_foods()) == ([], 'not_configured')
-    assert asyncio.run(AmbatoMoveAdapter().get_gyms()) == ([], 'not_configured')
+    assert asyncio.run(AmbatuMoveAdapter().get_gyms()) == ([], 'not_configured')
 
 
 def test_mobile_endpoints_require_bearer_without_shipping_service_secret(demo_user_token):
@@ -25,7 +25,7 @@ def test_mobile_endpoints_require_bearer_without_shipping_service_secret(demo_us
 
 
 def test_dotenv_settings_activate_confirmed_adapter_without_environment_export(monkeypatch):
-    from integration.adapters import ambatomove
+    from integration.adapters import ambatumove
     from pathlib import Path
     env_file = Path(__file__).resolve().parents[1] / 'var' / 'integration-test.env'
     env_file.parent.mkdir(exist_ok=True)
@@ -35,14 +35,15 @@ def test_dotenv_settings_activate_confirmed_adapter_without_environment_export(m
         configured = Settings(_env_file=env_file)
     finally:
         env_file.unlink()
-    monkeypatch.setattr(ambatomove, 'settings', configured)
+    monkeypatch.setattr(ambatumove, 'settings', configured)
     original_client = httpx.AsyncClient
     def handle(request):
         assert request.headers['X-API-Key'] == 'test-key'
         return httpx.Response(200, json={'items': [{'id': 'demo-gym', 'name': 'Synthetic facility'}]})
-    monkeypatch.setattr(ambatomove.httpx, 'AsyncClient', lambda **kwargs: original_client(transport=httpx.MockTransport(handle), **kwargs))
-    items, status = asyncio.run(AmbatoMoveAdapter(configured.GYM_PROVIDER_BASE_URL, configured.GYM_PROVIDER_API_KEY).get_gyms())
+    monkeypatch.setattr(ambatumove.httpx, 'AsyncClient', lambda **kwargs: original_client(transport=httpx.MockTransport(handle), **kwargs))
+    items, status = asyncio.run(AmbatuMoveAdapter(configured.GYM_PROVIDER_BASE_URL, configured.GYM_PROVIDER_API_KEY).get_gyms())
     assert status == 'available'
+    assert items[0]['provider_id'] == 'ambatumove'
     assert items[0]['latitude'] is None
     assert items[0]['longitude'] is None
     assert items[0]['opening_hours'] is None

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ApiService } from '../services/ApiService';
-const C = createContext(null);
+
+const ProfileContext = createContext(null);
+
 export function ProfileProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const refresh = async () => {
@@ -11,6 +13,11 @@ export function ProfileProvider({ children }) {
   useEffect(() => {
     refresh().catch(() => {});
   }, []);
-  return <C.Provider value={{ profile, setProfile, refresh }}>{children}</C.Provider>;
+  return (
+    <ProfileContext.Provider value={{ profile, setProfile, refresh }}>
+      {children}
+    </ProfileContext.Provider>
+  );
 }
-export const useProfile = () => useContext(C);
+
+export const useProfile = () => useContext(ProfileContext);

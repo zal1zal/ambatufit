@@ -5,7 +5,8 @@
       "user_id": "u-demo-001",
       "recorded_at": "2026-11-20T09:00:00Z",
       "wellbeing_note": "DATA DEMO: catatan sintetis",
-      "symptom_tags": []
+      "symptom_tags": [],
+      "meal_logs": []
     }
   ],
   "total": 1

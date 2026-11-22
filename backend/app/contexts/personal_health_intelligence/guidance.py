@@ -1,31 +1,17 @@
-import os
 import json
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
+from app.config import RULES_DIR
 from app.schemas.health import GuidanceItem, GuidanceSource
 
-
-def get_guidance_path() -> str:
-    # Find backend root containing 'rules'
-    curr = os.path.dirname(os.path.abspath(__file__))
-    while curr:
-        candidate = os.path.join(curr, "rules", "health_guidance.json")
-        if os.path.exists(candidate):
-            return candidate
-        parent = os.path.dirname(curr)
-        if parent == curr:
-            break
-        curr = parent
-    return os.path.join(os.getcwd(), "rules", "health_guidance.json")
+GUIDANCE_FILE = RULES_DIR / "health_guidance.json"
 
 
 def load_guidance_rules() -> List[Dict[str, Any]]:
-    path = get_guidance_path()
-    if not os.path.exists(path):
+    if not GUIDANCE_FILE.exists():
         return []
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+        return json.loads(GUIDANCE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
         return []
 
 
@@ -37,38 +23,65 @@ def generate_guidance(
 ) -> List[GuidanceItem]:
     """
     Deterministic rule-based personalized health guidance generation.
-    Enforces invariant B-09: if safety_level is urgent or review_recommended,
-    physical activity recommendations are suppressed or marked 'needs_review'.
+    Transparently aligns rules to health_goal and user preferences, and suppresses
+    physical activity instructions whenever unresolved safety concerns exist (B-09).
     """
-    rules = load_guidance_rules()
     items: List[GuidanceItem] = []
+    diet_set = {p.strip().lower() for p in dietary_preferences if p.strip()}
+    act_set = {p.strip().lower() for p in activity_preferences if p.strip()}
 
-    for rule in rules:
+    for rule in load_guidance_rules():
         rule_goal = rule.get("goal")
-        # Match goal or general wellbeing
-        if rule_goal in (health_goal, "general_wellbeing"):
-            readiness = rule.get("readiness", "ready")
-            category = rule.get("category", "general_wellbeing")
-            
-            # Safety suppression
-            if safety_level in ("urgent", "review_recommended"):
-                readiness = "needs_review"
-                if category == 'physical_activity':
-                    # Do not retain exercise instructions underneath the restriction.
-                    rule = {**rule, 'description': 'Tunda panduan aktivitas fisik sampai keluhan ditinjau oleh tenaga profesional.'}
+        pref_tags = {t.lower() for t in rule.get("preference_tags", [])}
+        matches_goal = rule_goal in (health_goal, "general_wellbeing")
+        matches_pref = bool(pref_tags and (pref_tags & (diet_set | act_set)))
+        if not (matches_goal or matches_pref):
+            continue
 
-            items.append(
-                GuidanceItem(
-                    id=rule.get("rule_id", f"guide-{len(items)+1}"),
-                    category=category,
-                    title=rule.get("title", "Panduan Kesehatan"),
-                    description=rule.get("description", ""),
-                    source=GuidanceSource(
-                        provider_id=rule.get("source", {}).get("provider_id", "ambatufit"),
-                        reference_id=rule.get("source", {}).get("reference_id", "kemkes-germas"),
-                    ),
-                    readiness=readiness,
-                )
+        readiness = rule.get("readiness", "ready")
+        category = rule.get("category", "general_wellbeing")
+        description = rule.get("description", "")
+
+        if safety_level in ("urgent", "review_recommended"):
+            readiness = "needs_review"
+            if category == "physical_activity":
+                description = "Tunda panduan aktivitas fisik sampai keluhan ditinjau oleh tenaga profesional."
+        else:
+            basis_parts = [f"tujuan: {health_goal}"]
+            if category == "nutrition" and diet_set:
+                basis_parts.append(f"preferensi nutrisi: {', '.join(sorted(diet_set))}")
+            elif category == "physical_activity" and act_set:
+                basis_parts.append(f"preferensi aktivitas: {', '.join(sorted(act_set))}")
+            description = f"{description} (Dasar panduan: {'; '.join(basis_parts)})."
+
+        src = rule.get("source") or {}
+        items.append(
+            GuidanceItem(
+                id=rule.get("rule_id", f"guide-{len(items) + 1}"),
+                category=category,
+                title=rule.get("title", "Panduan Kesehatan"),
+                description=description,
+                source=GuidanceSource(
+                    provider_id=src.get("provider_id", "ambatufit"),
+                    reference_id=src.get("reference_id", "kemkes-germas"),
+                ),
+                readiness=readiness,
             )
+        )
+
+    if not diet_set and not act_set:
+        items.append(
+            GuidanceItem(
+                id="GUIDE-PROFILE-NOTICE",
+                category="general_wellbeing",
+                title="Lengkapi Preferensi Profil Kesehatan",
+                description=(
+                    "Preferensi makanan dan aktivitas belum diisi, sehingga panduan yang ditampilkan "
+                    "masih terbatas pada informasi kesehatan umum."
+                ),
+                source=GuidanceSource(provider_id="ambatufit", reference_id="profile-completeness-notice"),
+                readiness="needs_review" if safety_level in ("urgent", "review_recommended") else "ready",
+            )
+        )
 
     return items

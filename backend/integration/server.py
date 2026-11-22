@@ -9,14 +9,14 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.security import decode_access_token
 from integration.adapters.ambatunoutrish import AmbatuNoutrishAdapter
-from integration.adapters.ambatomove import AmbatoMoveAdapter
+from integration.adapters.ambatumove import AmbatuMoveAdapter
 from integration.schemas import FoodList, GymList, ProviderStatus
 
 app = FastAPI(title='AmbatuFit Off-STB Integration Service', version='1.0.0')
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origin_list, allow_methods=['GET'], allow_headers=['Authorization', 'X-Service-Token', 'X-Request-ID'], expose_headers=['X-Request-ID'])
 
 noutrish_adapter = AmbatuNoutrishAdapter(settings.NUTRITION_PROVIDER_BASE_URL, settings.NUTRITION_PROVIDER_API_KEY)
-ambatomove_adapter = AmbatoMoveAdapter(settings.GYM_PROVIDER_BASE_URL, settings.GYM_PROVIDER_API_KEY)
+ambatumove_adapter = AmbatuMoveAdapter(settings.GYM_PROVIDER_BASE_URL, settings.GYM_PROVIDER_API_KEY)
 
 
 def authorize(authorization: str | None = Header(None), x_service_token: str | None = Header(None)):
@@ -55,8 +55,8 @@ def health():
 
 @app.get('/integration/v1/status', response_model=dict[str, ProviderStatus], dependencies=[Depends(authorize)])
 async def get_status():
-    nutrition, gym = await asyncio.gather(noutrish_adapter.get_foods(), ambatomove_adapter.get_gyms())
-    return {'ambatunoutrish': nutrition[1], 'ambatomove': gym[1]}
+    nutrition, gym = await asyncio.gather(noutrish_adapter.get_foods(), ambatumove_adapter.get_gyms())
+    return {'ambatunoutrish': nutrition[1], 'ambatumove': gym[1]}
 
 
 @app.get('/integration/v1/nutrition/foods', response_model=FoodList, dependencies=[Depends(authorize)])
@@ -67,5 +67,5 @@ async def get_nutrition_foods(query: str | None = Query(None, max_length=200)):
 
 @app.get('/integration/v1/fitness/gyms', response_model=GymList, dependencies=[Depends(authorize)])
 async def get_fitness_gyms(city: str | None = Query(None, max_length=200)):
-    items, provider_status = await ambatomove_adapter.get_gyms(city)
+    items, provider_status = await ambatumove_adapter.get_gyms(city)
     return {'items': items, 'total': len(items), 'provider_status': provider_status}

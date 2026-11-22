@@ -39,12 +39,25 @@ export function AuthProvider({ children }) {
       ready,
       startupError,
       retryStartup() { setRestoreAttempt((attempt) => attempt + 1); },
+      async register(email, password, displayName) {
+        return ApiService.auth.register(email, password, displayName);
+      },
       async login(email, password) {
         const result = await ApiService.auth.login(email, password);
         setUser(result?.user || null);
         return result;
       },
+      async updateAccount(payload) {
+        const updated = await ApiService.auth.updateAccount(payload);
+        setUser(updated);
+        return updated;
+      },
       async logout() {
+        try {
+          if (AuthSession.getToken()) {
+            await ApiService.auth.logout();
+          }
+        } catch {}
         await AuthSession.clear();
         setUser(null);
       },

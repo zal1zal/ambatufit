@@ -1,0 +1,96 @@
+{
+  "k": 4,
+  "metrics": {
+    "recall@4": 1.0,
+    "precision@4": 1.0,
+    "mrr": 1.0,
+    "ndcg@4": 1.0,
+    "no_evidence_accuracy": 1.0,
+    "safety_compliance_rate": 1.0,
+    "context_retention_rate": 1.0,
+    "citation_validity_rate": 1.0,
+    "grounded_rouge_l_f1": 0.2376
+  },
+  "retrieval_details": [
+    {
+      "id": "RET-01",
+      "query": "Apa itu diabetes mellitus tipe 2 dan gula darah tinggi?",
+      "retrieved_count": 4,
+      "top_chunk": "Diabetes Melitus (Kencing Manis) — Diabetes",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    },
+    {
+      "id": "RET-02",
+      "query": "darah tinggi hipertensi",
+      "retrieved_count": 4,
+      "top_chunk": "Hipertensi (Tekanan Darah Tinggi) — How to Prevent High Blood Pressure",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    },
+    {
+      "id": "RET-03",
+      "query": "asam lambung gerd nyeri ulu hati",
+      "retrieved_count": 4,
+      "top_chunk": "Penyakit Refluks Asam Lambung (GERD) — GERD",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    },
+    {
+      "id": "RET-04",
+      "query": "asma sesak napas mengi",
+      "retrieved_count": 4,
+      "top_chunk": "Asma (Sesak Napas / Mengi) — Asthma",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    },
+    {
+      "id": "RET-05",
+      "query": "pneumonia radang paru infeksi paru",
+      "retrieved_count": 4,
+      "top_chunk": "Pneumonia (Radang Paru) (Pneumonia)",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    },
+    {
+      "id": "RET-06",
+      "query": "cetirizine paracetamol ibuprofen tylenol",
+      "retrieved_count": 2,
+      "top_chunk": "basic care acetaminophen (ACETAMINOPHEN)",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    },
+    {
+      "id": "RET-07",
+      "query": "nyeri lutut cedera olahraga knee injuries",
+      "retrieved_count": 3,
+      "top_chunk": "Cedera & Nyeri Lutut — Knee Injuries and Disorders",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    },
+    {
+      "id": "RET-08",
+      "query": "panduan gizi seimbang isi piringku aktivitas fisik rutin",
+      "retrieved_count": 1,
+      "top_chunk": "Pedoman Piring Sehat & Isi Piringku",
+      "recall": 1.0,
+      "precision": 1.0,
+      "rr": 1.0,
+      "ndcg": 1.0
+    }
+  ]
+}
